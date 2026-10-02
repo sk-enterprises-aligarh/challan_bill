@@ -14,7 +14,7 @@
 // =============================================================================
 const FIXED_SELLER = {
   name: 'SK ENTERPRISES',
-  factory: 'Factory : AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA',
+  factory: 'AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA',
   gstin: '09AVQPG8947B1Z6',
   stateCode: '09',
   state: 'UTTAR PRADESH',
