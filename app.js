@@ -82,7 +82,7 @@ const IMAGE_SAMPLE_CHALLAN = {
   items: [
     {
       id: 'item-1',
-      particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
+      particulars: 'RECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
       qty: 405.35,
       unit: 'Kgs',
       rate: 305.00,
