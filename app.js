@@ -417,6 +417,14 @@ function renderInvoiceSheet() {
   // A. RENDER JOBWORK CHALLAN (IMAGE SPECIFICATION)
   // ---------------------------------------------------------------------------
   if (sheetChallan) {
+    // 0. Seller Information (Dynamic binding to FIXED_SELLER)
+    const chSellerName = document.getElementById('view-ch-seller-name');
+    if (chSellerName) chSellerName.textContent = FIXED_SELLER.name;
+    const chSellerFactory = document.getElementById('view-ch-seller-factory');
+    if (chSellerFactory) chSellerFactory.textContent = FIXED_SELLER.factory;
+    const chSellerGstin = document.getElementById('view-ch-seller-gstin');
+    if (chSellerGstin) chSellerGstin.textContent = 'GSTIN- ' + FIXED_SELLER.gstin;
+
     // 1. Meta Row
     document.getElementById('view-ch-no').textContent = currentInvoice.challanNo || '21';
     document.getElementById('view-ch-date').textContent = formatDateDDMMYYYYDot(currentInvoice.challanDate || currentInvoice.invoiceDate);
@@ -758,7 +766,7 @@ function renderItemEditorCards() {
       <!-- Description Textarea (Multi-line support) -->
       <div class="form-group">
         <label>Description (Multi-line formatted text) *</label>
-        <textarea class="form-control item-particulars" rows="2" placeholder="e.g. Production/Processing : -&#10;RECIECVED ZINC SCRAP 23-09-2026&#10;CHALLAN NO. 003">${item.particulars || ''}</textarea>
+        <textarea class="form-control item-particulars" rows="2" placeholder="e.g. RECIECVED ZINC SCRAP 23-09-2026&#10;CHALLAN NO. 003">${item.particulars || ''}</textarea>
       </div>
 
       <div class="form-row">
@@ -1650,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('chip-zinc-scrap')?.addEventListener('click', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
-      particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
+      particulars: 'RECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
       qty: 405.35,
       unit: 'Kgs',
       rate: 305.00,

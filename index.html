@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SK ENTERPRISES - JobWork Challan &amp; Billing Software</title>
   <meta name="description" content="Dedicated JobWork Challan and GST Billing Software for SK ENTERPRISES, Aligarh. Fixed seller details, editable buyer and product weights/rates, real-time GST, and authentic A4 print.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.0.1">
 </head>
 <body class="theme-light">
   <!-- Top Application Navigation Bar -->
@@ -592,11 +595,11 @@
 
             <!-- 2. Fixed Seller Information -->
             <div class="challan-seller-section">
-              <h1 class="challan-seller-title">SK ENTERPRISES</h1>
-              <div class="challan-seller-factory">
-                Factory : AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA
+              <h1 class="challan-seller-title" id="view-ch-seller-name">SK ENTERPRISES</h1>
+              <div class="challan-seller-factory" id="view-ch-seller-factory">
+                AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA
               </div>
-              <div class="challan-seller-gstin">
+              <div class="challan-seller-gstin" id="view-ch-seller-gstin">
                 GSTIN- 09AVQPG8947B1Z6
               </div>
             </div>
@@ -974,7 +977,7 @@
   <!-- External Libraries for PDF & ZIP Export -->
   <script src="jszip.min.js"></script>
   <script src="html2pdf.bundle.min.js"></script>
-  <!-- Application Logic -->
-  <script src="app.js"></script>
+  <!-- Application Logic (Cache-Busted) -->
+  <script src="app.js?v=1.0.1"></script>
 </body>
 </html>
