@@ -1,5 +1,5 @@
 /* ==========================================================================
-   S K ENTERPRISES - GST Tax Invoice & Job Work Billing System
+   SK ENTERPRISES - GST Tax Invoice & Job Work Billing System
    Modern Dual-Pane UI Design System & Pixel-Perfect Standard A4 Print Sheet
    ========================================================================== */
 
@@ -1353,7 +1353,7 @@ body.theme-dark .signature-canvas-container {
 }
 
 /* ==========================================================================
-   THE EXACT REPLICA S K ENTERPRISES TAX INVOICE SHEET (A4 SPECIFICATION)
+   THE EXACT REPLICA SK ENTERPRISES TAX INVOICE SHEET (A4 SPECIFICATION)
    ========================================================================== */
 .invoice-sheet.exact-bill {
   width: 210mm;
@@ -1410,7 +1410,7 @@ body.theme-dark .signature-canvas-container {
   text-transform: uppercase;
 }
 
-/* 2. Permanent Seller Block (S K ENTERPRISES) */
+/* 2. Permanent Seller Block (SK ENTERPRISES) */
 .bill-seller-block {
   text-align: center;
   padding: 8px 10px 6px 10px;

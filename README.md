@@ -1,6 +1,6 @@
-# M/S S.K. ENTERPRISES - JobWork Challan & GST Billing Software
+# SK ENTERPRISES - JobWork Challan & GST Billing Software
 
-Custom-built commercial billing software for **M/S S.K. ENTERPRISES** (Aligarh, Uttar Pradesh) developed directly from the physical **JobWork Challan** specification.
+Custom-built commercial billing software for **SK ENTERPRISES** (Aligarh, Uttar Pradesh) developed directly from the physical **JobWork Challan** specification.
 
 The software permanently locks all seller/owner details while providing an intuitive, real-time dual-pane interface to edit buyer details, product descriptions, weights, rates, amounts, and GST calculations.
 
@@ -10,12 +10,12 @@ The software permanently locks all seller/owner details while providing an intui
 
 ### 🔒 1. Permanently Locked Seller Details (Fixed & Read-Only)
 As per configuration, the seller information is permanently locked to prevent accidental modification:
-- **Firm Name**: `M/S S.K. ENTERPRISES`
+- **Firm Name**: `SK ENTERPRISES`
 - **Factory Address**: `AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA`
 - **GSTIN**: `09AVQPG8947B1Z6`
 - **State**: `UTTAR PRADESH` (State Code: `09`)
 - **Declaration**: `The above goods are returned to principal after completion of job work.`
-- **Signatory**: `For S.K. ENTERPRISES` / `Authorised Signatury`
+- **Signatory**: `For SK ENTERPRISES` / `Authorised Signatury`
 
 ---
 
@@ -32,20 +32,20 @@ As per configuration, the seller information is permanently locked to prevent ac
 ### 📦 3. Editable Product Descriptions, Weights (Qty) & Rates
 - **Challan Reference**: Challan Number (e.g. `Ch. No. - 21` with 1-click `+1` auto-increment) and Date (`Date - 30.09.2026`).
 - **Product Description**: Multi-line formatted description with automatic line breaks (e.g. `Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003` or `ISSUED JOBWORK`).
-- **Weight / QTY**: 3-decimal precision (e.g. `405.350`).
+- **Weight / QTY**: 2-decimal precision (e.g. `405.35`).
 - **Unit**: Flexible unit naming (`Kgs`, `KGS`, `Pcs`, `Bags`, `Qtl`).
 - **Rate & Amount**:
   - Rate in ₹ (e.g. `305.00`, `70.00`).
-  - Auto-calculated Amount (`Qty × Rate` with 3 decimals: `123631.750`, `28374.500`).
+  - Auto-calculated Amount (`Qty × Rate` with 2 decimals: `123631.75`, `28374.50`).
 - **Per-Item GST Tax Treatment**:
-  - **Non-Taxable / Scrap Movement**: Displays `-` in CGST and SGST columns, with total rounded to whole rupee (e.g. `123632.000`), matching original physical document.
-  - **Job Work GST 18%**: 9% CGST (`2553.710`) + 9% SGST (`2553.710`), total `33482.000`.
+  - **Non-Taxable / Scrap Movement**: Displays `-` in CGST and SGST columns, with total rounded to whole rupee (e.g. `123632.00`), matching original physical document.
+  - **Job Work GST 18%**: 9% CGST (`2553.71`) + 9% SGST (`2553.71`), total `33482.00`.
   - **Inter-State IGST 18%**: For customers outside Uttar Pradesh.
 - **Totals Calculation**:
-  - Amount sum: `152006.250`
-  - CGST sum: `2553.710`
-  - SGST sum: `2553.710`
-  - Grand Total Amount: `157114.000`
+  - Amount sum: `152006.25`
+  - CGST sum: `2553.71`
+  - SGST sum: `2553.71`
+  - Grand Total Amount: `157114.00`
 - **Title-Case Amount in Words**: Auto-converted into Indian currency numbering format:
   `Rupees One Lakh Fifty Seven Thousand One Hundred Fourteen Only`
 - **Table Spacers**: Minimum blank spacer rows (default 4 rows) to preserve the exact physical look of the original printed bill.
@@ -59,12 +59,12 @@ As per configuration, the seller information is permanently locked to prevent ac
 ---
 
 ### ✍️ 5. Official Rubber Stamp & Signatory System
-- **Official Vector Stamp**: S.K. Enterprises Aligarh rubber stamp with adjustable ink color (Navy Blue, Black, Ruby Red, Purple) and tilt angle.
+- **Official Vector Stamp**: SK Enterprises Aligarh rubber stamp with adjustable ink color (Navy Blue, Black, Ruby Red, Purple) and tilt angle.
 - **Authorised Signature**:
   - ✏️ **Draw Sign**: Canvas supporting mouse, touch, and stylus pen.
   - ⌨️ **Type Name**: Generates cursive calligraphic signature.
   - 📁 **Upload File**: Upload signature image (PNG, JPG).
-  - ⚡ **S.K. Preset**: 1-click partner signature preset.
+  - ⚡ **SK Preset**: 1-click partner signature preset.
 
 ---
 

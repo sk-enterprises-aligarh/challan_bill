@@ -1,8 +1,8 @@
 /**
- * M/S S.K. ENTERPRISES - JobWork Challan & Commercial GST Billing Software
+ * SK ENTERPRISES - JobWork Challan & Commercial GST Billing Software
  * 
  * Rules:
- * - Seller / Owner details are STRICTLY LOCKED to M/S S.K. ENTERPRISES (Aligarh)
+ * - Seller / Owner details are STRICTLY LOCKED to SK ENTERPRISES (Aligarh)
  * - Only Buyer Details ("BUYER NAME & ADDRESS"), Product Description, Weight (Qty) & Amount can be edited
  * - Supports exact replica JobWork Challan (from photograph) and Commercial Tax Invoice
  * - Includes Title-Case Indian currency Number-to-Words, Per-Item GST calculations (Nil/Scrap, 18% Jobwork),
@@ -13,13 +13,13 @@
 // 1. Permanent / Fixed Seller Configuration (Strictly Locked)
 // =============================================================================
 const FIXED_SELLER = {
-  name: 'M/S S.K. ENTERPRISES',
+  name: 'SK ENTERPRISES',
   factory: 'Factory : AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA',
   gstin: '09AVQPG8947B1Z6',
   stateCode: '09',
   state: 'UTTAR PRADESH',
   declaration: 'The above goods are returned to principal after completion of job work.',
-  signatory: 'For S.K. ENTERPRISES',
+  signatory: 'For SK ENTERPRISES',
   signCaption: 'Authorised Signatury',
   mobile: '93595 02004',
   bankName: 'CANARA BANK',
@@ -35,7 +35,7 @@ const FIXED_SELLER = {
 const DEFAULT_PARTNER_SIGNATURE_DATAURL = (function() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="110" viewBox="0 0 320 110">
     <path d="M25 65 C 45 25, 75 20, 85 55 C 95 90, 115 25, 135 60 C 145 75, 160 35, 185 55 C 205 70, 230 45, 255 58 C 275 68, 290 55, 305 60" fill="none" stroke="#1d4ed8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="35" y="68" font-family="'Caveat', cursive, sans-serif" font-size="44" font-weight="700" fill="#1d4ed8">S. K. Enterprises</text>
+    <text x="35" y="68" font-family="'Caveat', cursive, sans-serif" font-size="44" font-weight="700" fill="#1d4ed8">SK Enterprises</text>
     <path d="M30 84 Q 160 76, 285 80" fill="none" stroke="#1d4ed8" stroke-width="2.2" stroke-linecap="round"/>
   </svg>`;
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -74,7 +74,7 @@ const IMAGE_SAMPLE_CHALLAN = {
     placeOfSupply: 'ALIGARH (09)',
     noOfCases: '',
     reverseCharge: 'NO',
-    weight: 405.350,
+    weight: 405.35,
     freight: 0
   },
 
@@ -83,26 +83,26 @@ const IMAGE_SAMPLE_CHALLAN = {
     {
       id: 'item-1',
       particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'Kgs',
       rate: 305.00,
       taxType: 'none', // Nil GST on scrap receipt
-      amount: 123631.750,
+      amount: 123631.75,
       cgst: 0,
       sgst: 0,
-      totalAmount: 123632.000
+      totalAmount: 123632.00
     },
     {
       id: 'item-2',
       particulars: 'ISSUED JOBWORK',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'KGS',
       rate: 70.00,
       taxType: 'intra', // 9% CGST + 9% SGST = 18%
-      amount: 28374.500,
-      cgst: 2553.710,
-      sgst: 2553.710,
-      totalAmount: 33482.000
+      amount: 28374.50,
+      cgst: 2553.71,
+      sgst: 2553.71,
+      totalAmount: 33482.00
     }
   ],
 
@@ -114,14 +114,14 @@ const IMAGE_SAMPLE_CHALLAN = {
   material: {
     show: true,
     date: '2026-09-23',
-    opening: 0.000,
+    opening: 0.00,
     receivedEntries: [
-      { id: 'rec-1', date: '2026-09-23', qty: 405.350, note: 'CHALLAN NO. 003' }
+      { id: 'rec-1', date: '2026-09-23', qty: 405.35, note: 'CHALLAN NO. 003' }
     ],
-    received: 405.350,
-    delivered: 405.350,
-    loss: 0.000,
-    returned: 0.000
+    received: 405.35,
+    delivered: 405.35,
+    loss: 0.00,
+    returned: 0.00
   },
 
   // Stamp & Sign
@@ -277,13 +277,13 @@ function formatDateDDMMYYYY(dateString) {
 
 function formatCurrency(num) {
   return Number(num || 0).toLocaleString('en-IN', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 }
 
 function formatQty(num) {
-  return Number(num || 0).toFixed(3);
+  return Number(num || 0).toFixed(2);
 }
 
 function escapeHtml(str) {
@@ -331,7 +331,7 @@ function calculateBillTotals() {
       cgst = 0;
       sgst = 0;
       igst = 0;
-      // In the physical challan, rounded to integer .000
+      // In the physical challan, rounded to integer .00
       rowTotal = autoRoundoff ? Math.round(amount) : amount;
     } else if (taxType === 'intra') {
       totalTaxableSum += amount;
@@ -443,8 +443,8 @@ function renderInvoiceSheet() {
       const tr = document.createElement('tr');
       tr.className = 'challan-data-row';
       const isNoneTax = item.taxType === 'none' || item.taxType === 'exempt';
-      const cgstStr = isNoneTax ? '-' : Number(item.cgst || 0).toFixed(3);
-      const sgstStr = isNoneTax ? '-' : Number(item.sgst || 0).toFixed(3);
+      const cgstStr = isNoneTax ? '-' : Number(item.cgst || 0).toFixed(2);
+      const sgstStr = isNoneTax ? '-' : Number(item.sgst || 0).toFixed(2);
 
       tr.innerHTML = `
         <td class="td-c-sno">${index + 1}</td>
@@ -452,10 +452,10 @@ function renderInvoiceSheet() {
         <td class="td-c-qty">${formatQty(item.qty)}</td>
         <td class="td-c-unit">${item.unit || ''}</td>
         <td class="td-c-rate">${Number(item.rate || 0).toFixed(2)}</td>
-        <td class="td-c-amount">${Number(item.amount || 0).toFixed(3)}</td>
+        <td class="td-c-amount">${Number(item.amount || 0).toFixed(2)}</td>
         <td class="td-c-cgst" style="text-align: ${isNoneTax ? 'center' : 'right'}">${cgstStr}</td>
         <td class="td-c-sgst" style="text-align: ${isNoneTax ? 'center' : 'right'}">${sgstStr}</td>
-        <td class="td-c-total">${Number(item.totalAmount || 0).toFixed(3)}</td>
+        <td class="td-c-total">${Number(item.totalAmount || 0).toFixed(2)}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -482,10 +482,10 @@ function renderInvoiceSheet() {
     }
 
     // 5. Total Row
-    document.getElementById('view-ch-total-amount').textContent = totals.totalAmountSum.toFixed(3);
-    document.getElementById('view-ch-total-cgst').textContent = totals.totalCgstSum > 0 ? totals.totalCgstSum.toFixed(3) : '-';
-    document.getElementById('view-ch-total-sgst').textContent = totals.totalSgstSum > 0 ? totals.totalSgstSum.toFixed(3) : '-';
-    document.getElementById('view-ch-grand-total').textContent = totals.grandTotalSum.toFixed(3);
+    document.getElementById('view-ch-total-amount').textContent = totals.totalAmountSum.toFixed(2);
+    document.getElementById('view-ch-total-cgst').textContent = totals.totalCgstSum > 0 ? totals.totalCgstSum.toFixed(2) : '-';
+    document.getElementById('view-ch-total-sgst').textContent = totals.totalSgstSum > 0 ? totals.totalSgstSum.toFixed(2) : '-';
+    document.getElementById('view-ch-grand-total').textContent = totals.grandTotalSum.toFixed(2);
 
     // 6. Amount in Words
     const wordsText = currentInvoice.wordsOverride || numberToIndianWords(totals.grandTotalSum);
@@ -562,7 +562,7 @@ function renderInvoiceSheet() {
         <td class="cell-particulars">${escapeHtml(item.particulars || '')}</td>
         <td class="cell-hsn">9988</td>
         <td class="cell-qty">${formatQty(item.qty)}</td>
-        <td class="cell-rate">${Number(item.rate || 0).toFixed(0)}</td>
+        <td class="cell-rate">${Number(item.rate || 0).toFixed(2)}</td>
         <td class="cell-amount">${Number(item.amount || 0).toFixed(2)}</td>
       `;
       invTbody.appendChild(tr);
@@ -639,7 +639,7 @@ function renderInvoiceSheet() {
   }
 
   // Quick total in footer
-  document.getElementById('quick-total-display').textContent = 'Rs. ' + totals.grandTotalSum.toFixed(3);
+  document.getElementById('quick-total-display').textContent = 'Rs. ' + totals.grandTotalSum.toFixed(2);
 }
 
 // =============================================================================
@@ -742,8 +742,8 @@ function renderItemEditorCards() {
     card.className = 'item-edit-card';
     card.dataset.index = index;
 
-    const amount = Number(item.amount || 0).toFixed(3);
-    const totalAmount = Number(item.totalAmount || 0).toFixed(3);
+    const amount = Number(item.amount || 0).toFixed(2);
+    const totalAmount = Number(item.totalAmount || 0).toFixed(2);
     const taxType = item.taxType || 'none';
 
     card.innerHTML = `
@@ -764,7 +764,7 @@ function renderItemEditorCards() {
       <div class="form-row">
         <div class="form-group flex-1">
           <label>Weight / QTY *</label>
-          <input type="number" step="0.001" class="form-control item-qty font-bold" value="${item.qty !== undefined ? item.qty : ''}" placeholder="405.350" required>
+          <input type="number" step="0.01" class="form-control item-qty font-bold" value="${item.qty !== undefined ? item.qty : ''}" placeholder="405.35" required>
         </div>
         <div class="form-group" style="width: 90px;">
           <label>Unit</label>
@@ -870,8 +870,8 @@ function updateCardComputedValues(idx) {
   calculateBillTotals();
   const amountDiv = card.querySelectorAll('.font-bold')[0];
   const totalDiv = card.querySelectorAll('.font-bold')[1];
-  if (amountDiv) amountDiv.textContent = '₹' + Number(item.amount || 0).toFixed(3);
-  if (totalDiv) totalDiv.textContent = '₹' + Number(item.totalAmount || 0).toFixed(3);
+  if (amountDiv) amountDiv.textContent = '₹' + Number(item.amount || 0).toFixed(2);
+  if (totalDiv) totalDiv.textContent = '₹' + Number(item.totalAmount || 0).toFixed(2);
 }
 
 // =============================================================================
@@ -1000,7 +1000,7 @@ function updateSavedInvoicesModal(searchQuery = '') {
         <div class="saved-inv-meta">GSTIN: ${escapeHtml(item.buyerGstin || 'N/A')}</div>
       </div>
       <div class="saved-inv-actions">
-        <strong class="saved-inv-amount">₹${Number(item.grandTotal || 0).toFixed(3)}</strong>
+        <strong class="saved-inv-amount">₹${Number(item.grandTotal || 0).toFixed(2)}</strong>
         <div class="btn-group-row">
           <button type="button" class="btn btn-sm btn-primary btn-load-saved" data-id="${item.id}">Load</button>
           <button type="button" class="btn btn-sm btn-outline btn-pdf-saved" data-id="${item.id}">PDF</button>
@@ -1391,19 +1391,19 @@ function initSignaturePad() {
   const typedDisplay = document.getElementById('typed-signature-display');
   if (typedInput && typedDisplay) {
     typedInput.addEventListener('input', (e) => {
-      const val = e.target.value || 'S. K. Enterprises';
+      const val = e.target.value || 'SK Enterprises';
       typedDisplay.textContent = val;
       generateTypedSignatureDataUrl(val);
     });
   }
 
-  // S.K. Preset button
+  // SK Preset button
   document.getElementById('btn-sig-preset')?.addEventListener('click', () => {
     currentInvoice.signature.dataUrl = DEFAULT_PARTNER_SIGNATURE_DATAURL;
     currentInvoice.signature.show = true;
     document.getElementById('toggle-signature').checked = true;
     renderInvoiceSheet();
-    showToast('Applied S.K. Enterprises Partner signature preset', 'toast-success');
+    showToast('Applied SK Enterprises Partner signature preset', 'toast-success');
   });
 
   // File upload
@@ -1513,14 +1513,14 @@ document.addEventListener('DOMContentLoaded', () => {
       {
         id: 'item-' + Date.now(),
         particulars: 'ISSUED JOBWORK',
-        qty: 405.350,
+        qty: 405.35,
         unit: 'KGS',
         rate: 70.00,
         taxType: 'intra',
-        amount: 28374.500,
-        cgst: 2553.710,
-        sgst: 2553.710,
-        totalAmount: 33482.000
+        amount: 28374.50,
+        cgst: 2553.71,
+        sgst: 2553.71,
+        totalAmount: 33482.00
       }
     ];
 
@@ -1632,14 +1632,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'ZINC JOB WORK CHARGES',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'KGS',
       rate: 70.00,
       taxType: 'intra',
-      amount: 28374.500,
-      cgst: 2553.710,
-      sgst: 2553.710,
-      totalAmount: 33482.000
+      amount: 28374.50,
+      cgst: 2553.71,
+      sgst: 2553.71,
+      totalAmount: 33482.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();
@@ -1651,14 +1651,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'Kgs',
       rate: 305.00,
       taxType: 'none',
-      amount: 123631.750,
+      amount: 123631.75,
       cgst: 0,
       sgst: 0,
-      totalAmount: 123632.000
+      totalAmount: 123632.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();
@@ -1669,14 +1669,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'ISSUED JOBWORK',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'KGS',
       rate: 70.00,
       taxType: 'intra',
-      amount: 28374.500,
-      cgst: 2553.710,
-      sgst: 2553.710,
-      totalAmount: 33482.000
+      amount: 28374.50,
+      cgst: 2553.71,
+      sgst: 2553.71,
+      totalAmount: 33482.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();
@@ -1687,14 +1687,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'ZINC DIE CASTING CHARGES',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'Kgs',
       rate: 45.00,
       taxType: 'intra',
-      amount: 18240.750,
-      cgst: 1641.670,
-      sgst: 1641.670,
-      totalAmount: 21524.000
+      amount: 18240.75,
+      cgst: 1641.67,
+      sgst: 1641.67,
+      totalAmount: 21524.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();
@@ -1704,14 +1704,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'FINISHING & BUFFING CHARGES',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'Kgs',
       rate: 15.00,
       taxType: 'intra',
-      amount: 6080.250,
-      cgst: 547.220,
-      sgst: 547.220,
-      totalAmount: 7175.000
+      amount: 6080.25,
+      cgst: 547.22,
+      sgst: 547.22,
+      totalAmount: 7175.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();
@@ -1721,14 +1721,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
       particulars: 'ZINC SCRAP RETURNED AFTER JOBWORK',
-      qty: 405.350,
+      qty: 405.35,
       unit: 'Kgs',
       rate: 0.00,
       taxType: 'none',
-      amount: 0.000,
+      amount: 0.00,
       cgst: 0,
       sgst: 0,
-      totalAmount: 0.000
+      totalAmount: 0.00
     });
     renderItemEditorCards();
     renderInvoiceSheet();

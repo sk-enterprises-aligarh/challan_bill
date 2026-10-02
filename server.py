@@ -21,7 +21,7 @@ if __name__ == '__main__':
     server_address = ('0.0.0.0', PORT)
     try:
         with ThreadingHTTPServer(server_address, NoCacheHandler) as httpd:
-            print(f"S K ENTERPRISES Server running at http://localhost:{PORT}")
+            print(f"SK ENTERPRISES Server running at http://localhost:{PORT}")
             sys.stdout.flush()
             httpd.serve_forever()
     except Exception as e:

@@ -14,7 +14,7 @@
     <!-- Circular Curved Text -->
     <text font-family="'Inter', Arial, sans-serif" font-size="11.5" font-weight="900" fill="#1d4ed8" letter-spacing="2.8">
       <textPath href="#circleTextPathOuterSK" startOffset="50%" text-anchor="middle">
-        ★ S K ENTERPRISES ★ ALIGARH ★
+        ★ SK ENTERPRISES ★ ALIGARH ★
       </textPath>
     </text>
 
