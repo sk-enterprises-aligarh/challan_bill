@@ -1,36 +1,37 @@
 /**
- * S K ENTERPRISES - Smart GST Tax Invoice & Job Work Billing System
+ * M/S S.K. ENTERPRISES - JobWork Challan & Commercial GST Billing Software
  * 
  * Rules:
- * - Seller / Bill Owner is STRICTLY LOCKED to S K ENTERPRISES (Aligarh)
- * - Only Buyer Details ("Billed To"), Consignment, Items & Material Ledger can be edited
- * - Includes Indian currency Number-to-Words, Zinc Job Work Ledger calculations,
- *   Buyer Directory, Local Storage History, and Pixel-Perfect A4 Printing.
+ * - Seller / Owner details are STRICTLY LOCKED to M/S S.K. ENTERPRISES (Aligarh)
+ * - Only Buyer Details ("BUYER NAME & ADDRESS"), Product Description, Weight (Qty) & Amount can be edited
+ * - Supports exact replica JobWork Challan (from photograph) and Commercial Tax Invoice
+ * - Includes Title-Case Indian currency Number-to-Words, Per-Item GST calculations (Nil/Scrap, 18% Jobwork),
+ *   Buyer Directory, Local Storage Database, Pixel-Perfect A4 Printing and Client-Side PDF/ZIP Export.
  */
 
 // =============================================================================
-// 1. Permanent / Fixed Seller & Owner Configuration
+// 1. Permanent / Fixed Seller Configuration (Strictly Locked)
 // =============================================================================
 const FIXED_SELLER = {
-  name: 'S K ENTERPRISES',
-  address: 'AGRAWAL STREET, SHAKTI NAGAR, GULAR ROAD, ALIGARH 202001 (UP) - INDIA',
-  mobile: '93595 02004',
+  name: 'M/S S.K. ENTERPRISES',
+  factory: 'Factory : AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA',
   gstin: '09AVQPG8947B1Z6',
   stateCode: '09',
   state: 'UTTAR PRADESH',
+  declaration: 'The above goods are returned to principal after completion of job work.',
+  signatory: 'For S.K. ENTERPRISES',
+  signCaption: 'Authorised Signatury',
+  mobile: '93595 02004',
   bankName: 'CANARA BANK',
   branch: 'SME BRANCH, GULAR ROAD, ALIGARH',
   acNo: '120002136484',
   ifsc: 'CNRB0002375',
-  signatory: 'FOR S K ENTERPRISES',
-  signCaption: 'Partner/ Authorised Signatory',
   jurisdiction: 'All Disputes are Subject to Aligarh Jurisdiction'
 };
 
 // =============================================================================
-// 2. Default Invoice State & Signature Presets
+// 2. Default Partner Signature Preset Vector
 // =============================================================================
-// Official S K Enterprises Partner Signature Preset Vector Data URL
 const DEFAULT_PARTNER_SIGNATURE_DATAURL = (function() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="110" viewBox="0 0 320 110">
     <path d="M25 65 C 45 25, 75 20, 85 55 C 95 90, 115 25, 135 60 C 145 75, 160 35, 185 55 C 205 70, 230 45, 255 58 C 275 68, 290 55, 305 60" fill="none" stroke="#1d4ed8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -40,75 +41,90 @@ const DEFAULT_PARTNER_SIGNATURE_DATAURL = (function() {
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 })();
 
-// Active state clone
-const ORIGINAL_BILL_DATA = {
+// =============================================================================
+// 3. Authentic Image Sample Data (JobWork Challan Ch. No. 21)
+// =============================================================================
+const IMAGE_SAMPLE_CHALLAN = {
+  templateType: 'challan', // 'challan' (default) or 'invoice'
+  challanNo: '21',
+  challanDate: '2026-09-30',
   invoiceNumber: '001',
-  invoiceDate: '2022-05-15',
+  invoiceDate: '2026-09-30',
   copyType: 'ORIGINAL',
   category: 'JOB WORK',
+  notes: '', // right box left blank as in photograph
 
-  // Buyer Details ("Billed To:")
+  // Buyer Details ("BUYER NAME & ADDRESS")
   buyer: {
-    name: 'M/s SREE CORPORATION',
-    addr1: 'C-72, PHASE-I',
-    addr2: 'TALANAGRI',
+    name: 'M/s EVERSHINE SALES',
+    addr1: '70/1, GALI NO.1, SAROJ NAGAR',
+    addr2: 'ETAH CHUNGI, ALIGARH',
     cityPin: 'ALIGARH - 202001',
-    gstin: '09AEZPG1543H1Z6',
-    state: 'UTTAR PRADESH',
+    gstin: '09AAHFE2287Q1ZP',
+    state: 'U.P',
     stateCode: '09'
   },
 
-  // Details of Consignment
+  // Consignment Details (for Tax Invoice mode)
   consignment: {
     transport: '',
     lrNo: '',
     vehNo: '',
     ewbNo: '',
-    placeOfSupply: '',
-    noOfCases: '35 BAGS',
-    reverseCharge: '',
-    weight: 402.000,
+    placeOfSupply: 'ALIGARH (09)',
+    noOfCases: '',
+    reverseCharge: 'NO',
+    weight: 405.350,
     freight: 0
   },
 
-  // Line items (Particulars)
+  // Line items matching the photograph
   items: [
     {
       id: 'item-1',
-      particulars: 'ZINC DIE CASTING CHARGES',
-      hsn: '9988',
-      qty: 402.000,
-      rate: 40.00
+      particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
+      qty: 405.350,
+      unit: 'Kgs',
+      rate: 305.00,
+      taxType: 'none', // Nil GST on scrap receipt
+      amount: 123631.750,
+      cgst: 0,
+      sgst: 0,
+      totalAmount: 123632.000
+    },
+    {
+      id: 'item-2',
+      particulars: 'ISSUED JOBWORK',
+      qty: 405.350,
+      unit: 'KGS',
+      rate: 70.00,
+      taxType: 'intra', // 9% CGST + 9% SGST = 18%
+      amount: 28374.500,
+      cgst: 2553.710,
+      sgst: 2553.710,
+      totalAmount: 33482.000
     }
   ],
 
-  // Tax and Round off
-  taxMode: 'intra', // 'intra' (9% SGST + 9% CGST) or 'inter' (18% IGST)
-  autoDetectTax: true,
+  minRows: 4,
   autoRoundoff: true,
-  customRoundoff: -0.40,
   wordsOverride: '',
 
-  // Details of Material (Zinc Job Work Ledger)
+  // Material ledger (for Tax Invoice mode)
   material: {
     show: true,
-    date: '2022-07-02',
+    date: '2026-09-23',
     opening: 0.000,
     receivedEntries: [
-      {
-        id: 'rec-1',
-        date: '2022-07-02',
-        qty: 1256.000,
-        note: ''
-      }
+      { id: 'rec-1', date: '2026-09-23', qty: 405.350, note: 'CHALLAN NO. 003' }
     ],
-    received: 1256.000,
-    delivered: 402.000,
-    loss: 20.100,
+    received: 405.350,
+    delivered: 405.350,
+    loss: 0.000,
     returned: 0.000
   },
 
-  // Sign & Stamp
+  // Stamp & Sign
   stamp: {
     show: true,
     color: '#1d4ed8',
@@ -117,15 +133,25 @@ const ORIGINAL_BILL_DATA = {
   signature: {
     show: true,
     dataUrl: DEFAULT_PARTNER_SIGNATURE_DATAURL,
-    caption: 'Partner/ Authorised Signatory'
+    caption: 'Authorised Signatury'
   }
 };
 
-// Active state clone
-let currentInvoice = JSON.parse(JSON.stringify(ORIGINAL_BILL_DATA));
+// Active Working State
+let currentInvoice = JSON.parse(JSON.stringify(IMAGE_SAMPLE_CHALLAN));
 
-// Default Buyer Presets
+// Default Saved Buyers
 const DEFAULT_BUYERS = [
+  {
+    id: 'buyer-evershine',
+    name: 'M/s EVERSHINE SALES',
+    addr1: '70/1, GALI NO.1, SAROJ NAGAR',
+    addr2: 'ETAH CHUNGI, ALIGARH',
+    cityPin: 'ALIGARH - 202001',
+    gstin: '09AAHFE2287Q1ZP',
+    state: 'U.P',
+    stateCode: '09'
+  },
   {
     id: 'buyer-sree',
     name: 'M/s SREE CORPORATION',
@@ -133,16 +159,6 @@ const DEFAULT_BUYERS = [
     addr2: 'TALANAGRI',
     cityPin: 'ALIGARH - 202001',
     gstin: '09AEZPG1543H1Z6',
-    state: 'UTTAR PRADESH',
-    stateCode: '09'
-  },
-  {
-    id: 'buyer-aligarh-locks',
-    name: 'M/s ALIGARH LOCKS & DIE CASTINGS',
-    addr1: 'PLOT 14, ITI ROAD',
-    addr2: 'INDUSTRIAL AREA',
-    cityPin: 'ALIGARH - 202001',
-    gstin: '09BCDPG2314K1Z1',
     state: 'UTTAR PRADESH',
     stateCode: '09'
   },
@@ -159,10 +175,10 @@ const DEFAULT_BUYERS = [
 ];
 
 // =============================================================================
-// 3. Indian Currency Number to Words Converter
+// 4. Indian Currency Number to Words Converter (Title Case matching image)
 // =============================================================================
 function numberToIndianWords(amount) {
-  if (isNaN(amount) || amount === 0) return 'RUPEES ZERO ONLY';
+  if (isNaN(amount) || amount === 0) return 'Rupees Zero Only';
 
   const isNegative = amount < 0;
   const absAmount = Math.abs(amount);
@@ -170,13 +186,13 @@ function numberToIndianWords(amount) {
   const paise = Math.round((absAmount - rupees) * 100);
 
   const ones = [
-    '', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
-    'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN',
-    'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+    'Seventeen', 'Eighteen', 'Nineteen'
   ];
 
   const tens = [
-    '', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'
+    '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
   ];
 
   function convertTwoDigits(n) {
@@ -191,8 +207,8 @@ function numberToIndianWords(amount) {
     const rest = n % 100;
     let res = '';
     if (hundred > 0) {
-      res += ones[hundred] + ' HUNDRED';
-      if (rest > 0) res += ' AND ';
+      res += ones[hundred] + ' Hundred';
+      if (rest > 0) res += ' ';
     }
     if (rest > 0) {
       res += convertTwoDigits(rest);
@@ -213,33 +229,43 @@ function numberToIndianWords(amount) {
   let words = '';
 
   if (crore > 0) {
-    words += convertTwoDigits(crore) + ' CRORE ';
+    words += convertTwoDigits(crore) + ' Crore ';
   }
   if (lakh > 0) {
-    words += convertTwoDigits(lakh) + ' LAKH ';
+    words += convertTwoDigits(lakh) + ' Lakh ';
   }
   if (thousand > 0) {
-    words += convertTwoDigits(thousand) + ' THOUSAND ';
+    words += convertTwoDigits(thousand) + ' Thousand ';
   }
   if (hundredAndRest > 0) {
     words += convertThreeDigits(hundredAndRest);
   }
 
   words = words.trim();
-  if (words === '') words = 'ZERO';
+  if (words === '') words = 'Zero';
 
-  let result = 'RUPEES ' + words;
+  let result = 'Rupees ' + words;
   if (paise > 0) {
-    result += ' AND PAISE ' + convertTwoDigits(paise);
+    result += ' and ' + convertTwoDigits(paise) + ' Paise Only';
   } else {
-    result += ' AND PAISE ZERO ONLY';
+    result += ' Only';
   }
 
-  if (isNegative) result = 'MINUS ' + result;
+  if (isNegative) result = 'Minus ' + result;
   return result;
 }
 
-// Format date to DD-MM-YYYY
+// Date format DD.MM.YYYY (exact match to image)
+function formatDateDDMMYYYYDot(dateString) {
+  if (!dateString) return '';
+  const parts = dateString.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+  return dateString;
+}
+
+// Date format DD-MM-YYYY (for tax invoice mode)
 function formatDateDDMMYYYY(dateString) {
   if (!dateString) return '';
   const parts = dateString.split('-');
@@ -249,105 +275,115 @@ function formatDateDDMMYYYY(dateString) {
   return dateString;
 }
 
-// Format currency amount with commas and 2 decimals
 function formatCurrency(num) {
   return Number(num || 0).toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3
   });
 }
 
-// Format decimal quantity with 3 decimals
 function formatQty(num) {
   return Number(num || 0).toFixed(3);
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, function(m) {
+    switch (m) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#039;';
+      default: return m;
+    }
+  });
+}
+
 // =============================================================================
-// 4. Calculations Engine
+// 5. Calculations Engine
 // =============================================================================
 function calculateBillTotals() {
-  // 1. Taxable items total
-  let totalTaxable = 0;
+  let totalAmountSum = 0;
+  let totalTaxableSum = 0;
+  let totalCgstSum = 0;
+  let totalSgstSum = 0;
+  let totalIgstSum = 0;
+  let grandTotalSum = 0;
+
+  const autoRoundoff = currentInvoice.autoRoundoff !== false;
+
   currentInvoice.items.forEach(item => {
     const qty = parseFloat(item.qty) || 0;
     const rate = parseFloat(item.rate) || 0;
-    const amount = qty * rate;
+    const amount = item.amountOverride ? (parseFloat(item.amount) || 0) : (qty * rate);
     item.amount = amount;
-    totalTaxable += amount;
+    totalAmountSum += amount;
+
+    let cgst = 0;
+    let sgst = 0;
+    let igst = 0;
+    let rowTotal = amount;
+
+    const taxType = item.taxType || 'none';
+
+    if (taxType === 'none' || taxType === 'exempt') {
+      cgst = 0;
+      sgst = 0;
+      igst = 0;
+      // In the physical challan, rounded to integer .000
+      rowTotal = autoRoundoff ? Math.round(amount) : amount;
+    } else if (taxType === 'intra') {
+      totalTaxableSum += amount;
+      cgst = amount * 0.09;
+      sgst = amount * 0.09;
+      const combined = amount + cgst + sgst;
+      rowTotal = autoRoundoff ? Math.round(combined) : combined;
+    } else if (taxType === 'inter') {
+      totalTaxableSum += amount;
+      igst = amount * 0.18;
+      const combined = amount + igst;
+      rowTotal = autoRoundoff ? Math.round(combined) : combined;
+    }
+
+    item.cgst = cgst;
+    item.sgst = sgst;
+    item.igst = igst;
+    item.totalAmount = rowTotal;
+
+    totalCgstSum += cgst;
+    totalSgstSum += sgst;
+    totalIgstSum += igst;
+    grandTotalSum += rowTotal;
   });
 
-  // 2. Tax Mode Resolution (Intra 9%+9% or Inter 18%)
-  let taxMode = currentInvoice.taxMode;
-  if (currentInvoice.autoDetectTax) {
-    const buyerCode = (currentInvoice.buyer.stateCode || '').trim();
-    if (buyerCode && buyerCode !== '09') {
-      taxMode = 'inter';
-    } else {
-      taxMode = 'intra';
-    }
-  }
-
-  let sgstAmount = 0;
-  let cgstAmount = 0;
-  let igstAmount = 0;
-  let totalGst = 0;
-
-  if (taxMode === 'intra') {
-    sgstAmount = totalTaxable * 0.09;
-    cgstAmount = totalTaxable * 0.09;
-    totalGst = sgstAmount + cgstAmount;
-  } else if (taxMode === 'inter') {
-    igstAmount = totalTaxable * 0.18;
-    totalGst = igstAmount;
-  }
-
-  // 3. Raw Total
-  const rawTotal = totalTaxable + totalGst;
-
-  // 4. Round off
-  let roundoff = 0;
-  let grandTotal = rawTotal;
-
-  if (currentInvoice.autoRoundoff) {
-    const rounded = Math.round(rawTotal);
-    roundoff = rounded - rawTotal;
-    grandTotal = rounded;
+  // Material ledger totals (for Tax Invoice mode)
+  let matTotalReceived = 0;
+  if (currentInvoice.material && currentInvoice.material.receivedEntries) {
+    currentInvoice.material.receivedEntries.forEach(entry => {
+      matTotalReceived += (parseFloat(entry.qty) || 0);
+    });
   } else {
-    roundoff = parseFloat(currentInvoice.customRoundoff) || 0;
-    grandTotal = rawTotal + roundoff;
+    matTotalReceived = parseFloat(currentInvoice.material?.received) || 0;
   }
 
-  // 5. Material Ledger (Zinc Job Work Calculations)
-  ensureMaterialEntries(currentInvoice.material);
-  const matOpening = parseFloat(currentInvoice.material.opening) || 0;
-  
-  // Calculate total received from receivedEntries array with legacy fallback
-  let matReceived = 0;
-  if (Array.isArray(currentInvoice.material.receivedEntries) && currentInvoice.material.receivedEntries.length > 0) {
-    matReceived = currentInvoice.material.receivedEntries.reduce((sum, entry) => sum + (parseFloat(entry.qty) || 0), 0);
-  } else {
-    matReceived = parseFloat(currentInvoice.material.received) || 0;
-  }
-  currentInvoice.material.received = matReceived;
-
-  const matTotal = matOpening + matReceived;
-  const matDelivered = parseFloat(currentInvoice.material.delivered) || 0;
-  const matLoss = parseFloat(currentInvoice.material.loss) || 0;
-  const matReturned = parseFloat(currentInvoice.material.returned) || 0;
+  const matOpening = parseFloat(currentInvoice.material?.opening) || 0;
+  const matTotal = matOpening + matTotalReceived;
+  const matDelivered = parseFloat(currentInvoice.material?.delivered) || 0;
+  const matLoss = parseFloat(currentInvoice.material?.loss) || 0;
+  const matReturned = parseFloat(currentInvoice.material?.returned) || 0;
   const matBalance = matTotal - matDelivered - matLoss - matReturned;
 
   return {
-    totalTaxable,
-    taxMode,
-    sgstAmount,
-    cgstAmount,
-    igstAmount,
-    totalGst,
-    roundoff,
-    grandTotal,
+    totalAmountSum,
+    totalTaxableSum,
+    totalCgstSum,
+    totalSgstSum,
+    totalIgstSum,
+    grandTotalSum,
     material: {
       opening: matOpening,
-      received: matReceived,
+      received: matTotalReceived,
       total: matTotal,
       delivered: matDelivered,
       loss: matLoss,
@@ -358,320 +394,415 @@ function calculateBillTotals() {
 }
 
 // =============================================================================
-// 5. DOM Synchronization: Update View (Live Preview Sheet)
+// 6. DOM Synchronization: Update View (Live Preview Sheet)
 // =============================================================================
 function renderInvoiceSheet() {
   const totals = calculateBillTotals();
+  const isChallan = currentInvoice.templateType === 'challan';
 
-  // 1. Seller Information (Strictly Locked to S K ENTERPRISES)
-  document.getElementById('view-seller-name').textContent = FIXED_SELLER.name;
-  document.getElementById('view-seller-address').textContent = FIXED_SELLER.address;
-  document.getElementById('view-seller-mobile').textContent = FIXED_SELLER.mobile;
-  document.getElementById('view-seller-gstin').textContent = FIXED_SELLER.gstin;
-  document.getElementById('view-seller-statecode').textContent = FIXED_SELLER.stateCode;
+  const sheetChallan = document.getElementById('sheet-challan');
+  const sheetInvoice = document.getElementById('sheet-invoice');
 
-  // 2. Invoice Meta
-  document.getElementById('view-inv-number').textContent = currentInvoice.invoiceNumber || '001';
-  document.getElementById('view-inv-date').textContent = formatDateDDMMYYYY(currentInvoice.invoiceDate);
-  document.getElementById('view-copy-type').textContent = currentInvoice.copyType || 'ORIGINAL';
-  document.getElementById('view-inv-category').textContent = currentInvoice.category || 'JOB WORK';
-
-  // 3. Buyer Details ("Billed To:")
-  document.getElementById('view-buyer-name').textContent = currentInvoice.buyer.name || 'M/s SREE CORPORATION';
-  document.getElementById('view-buyer-addr1').textContent = currentInvoice.buyer.addr1 || '';
-  document.getElementById('view-buyer-addr2').textContent = currentInvoice.buyer.addr2 || '';
-  document.getElementById('view-buyer-city-pin').textContent = currentInvoice.buyer.cityPin || '';
-  document.getElementById('view-buyer-gstin').textContent = currentInvoice.buyer.gstin || '';
-  document.getElementById('view-buyer-state').textContent = currentInvoice.buyer.state || '';
-  document.getElementById('view-buyer-statecode').textContent = currentInvoice.buyer.stateCode || '';
-
-  // 4. Details of Consignment
-  document.getElementById('view-cons-transport').textContent = currentInvoice.consignment.transport || '';
-  document.getElementById('view-cons-lr-no').textContent = currentInvoice.consignment.lrNo || '';
-  document.getElementById('view-cons-veh-no').textContent = currentInvoice.consignment.vehNo || '';
-  document.getElementById('view-cons-ewb-no').textContent = currentInvoice.consignment.ewbNo || '';
-  document.getElementById('view-cons-place-supply').textContent = currentInvoice.consignment.placeOfSupply || '';
-  document.getElementById('view-cons-no-cases').textContent = currentInvoice.consignment.noOfCases || '';
-  document.getElementById('view-cons-reverse-charge').textContent = currentInvoice.consignment.reverseCharge || '';
-  document.getElementById('view-cons-weight').textContent = formatQty(currentInvoice.consignment.weight);
-  document.getElementById('view-cons-freight').textContent = (currentInvoice.consignment.freight || 0).toString();
-
-  // 5. Line Items Table
-  const tbody = document.getElementById('view-items-tbody');
-  tbody.innerHTML = '';
-
-  currentInvoice.items.forEach((item, index) => {
-    const tr = document.createElement('tr');
-    tr.className = 'item-data-row';
-    tr.innerHTML = `
-      <td class="cell-sno">${index + 1}</td>
-      <td class="cell-particulars">${item.particulars || ''}</td>
-      <td class="cell-hsn">${item.hsn || ''}</td>
-      <td class="cell-qty">${formatQty(item.qty)}</td>
-      <td class="cell-rate">${Number(item.rate || 0).toFixed(0)}</td>
-      <td class="cell-amount">${Number(item.amount || 0).toFixed(2)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Add blank spacer rows so the table maintains realistic invoice height
-  const blankRowsNeeded = Math.max(0, 5 - currentInvoice.items.length);
-  for (let i = 0; i < blankRowsNeeded; i++) {
-    const tr = document.createElement('tr');
-    tr.className = 'blank-item-row';
-    tr.innerHTML = `
-      <td>&nbsp;</td>
-      <td>&nbsp;</td>
-      <td>&nbsp;</td>
-      <td>&nbsp;</td>
-      <td>&nbsp;</td>
-      <td>&nbsp;</td>
-    `;
-    tbody.appendChild(tr);
-  }
-
-  // 6. Subtotals Block (Bottom Right of Items Table)
-  document.getElementById('view-total-taxable').textContent = Number(totals.totalTaxable).toFixed(2);
-
-  const rowSgst = document.getElementById('row-view-sgst');
-  const rowCgst = document.getElementById('row-view-cgst');
-  const rowIgst = document.getElementById('row-view-igst');
-
-  if (totals.taxMode === 'intra') {
-    rowSgst.style.display = '';
-    rowCgst.style.display = '';
-    rowIgst.style.display = 'none';
-    document.getElementById('view-total-sgst').textContent = Number(totals.sgstAmount).toFixed(2);
-    document.getElementById('view-total-cgst').textContent = Number(totals.cgstAmount).toFixed(2);
-  } else if (totals.taxMode === 'inter') {
-    rowSgst.style.display = 'none';
-    rowCgst.style.display = 'none';
-    rowIgst.style.display = '';
-    document.getElementById('view-total-igst').textContent = Number(totals.igstAmount).toFixed(2);
+  if (isChallan) {
+    if (sheetChallan) sheetChallan.style.display = 'block';
+    if (sheetInvoice) sheetInvoice.style.display = 'none';
+    document.getElementById('active-document-title').textContent = 'JobWork Challan Preview (Exact A4 Replica)';
   } else {
-    rowSgst.style.display = 'none';
-    rowCgst.style.display = 'none';
-    rowIgst.style.display = 'none';
+    if (sheetChallan) sheetChallan.style.display = 'none';
+    if (sheetInvoice) sheetInvoice.style.display = 'block';
+    document.getElementById('active-document-title').textContent = 'Commercial Tax Invoice Preview (A4)';
   }
 
-  // Round off display
-  const roundoffRow = document.getElementById('row-view-roundoff');
-  if (Math.abs(totals.roundoff) > 0.001) {
-    roundoffRow.style.display = '';
-    const prefix = totals.roundoff >= 0 ? '+' : '';
-    document.getElementById('view-total-roundoff').textContent = prefix + Number(totals.roundoff).toFixed(2);
-  } else {
-    document.getElementById('view-total-roundoff').textContent = '0.00';
-  }
+  // ---------------------------------------------------------------------------
+  // A. RENDER JOBWORK CHALLAN (IMAGE SPECIFICATION)
+  // ---------------------------------------------------------------------------
+  if (sheetChallan) {
+    // 1. Meta Row
+    document.getElementById('view-ch-no').textContent = currentInvoice.challanNo || '21';
+    document.getElementById('view-ch-date').textContent = formatDateDDMMYYYYDot(currentInvoice.challanDate || currentInvoice.invoiceDate);
 
-  // Grand Total
-  document.getElementById('view-grand-total').textContent = Number(totals.grandTotal).toFixed(2);
-  document.getElementById('quick-total-display').textContent = 'Rs. ' + formatCurrency(totals.grandTotal);
+    // 2. Buyer Details
+    document.getElementById('view-ch-buyer-name').textContent = currentInvoice.buyer.name || 'M/s EVERSHINE SALES';
+    document.getElementById('view-ch-buyer-addr1').textContent = currentInvoice.buyer.addr1 || '';
+    document.getElementById('view-ch-buyer-addr2').textContent = currentInvoice.buyer.addr2 || '';
+    document.getElementById('view-ch-buyer-gstin').textContent = currentInvoice.buyer.gstin || '';
+    document.getElementById('view-ch-buyer-state').textContent = currentInvoice.buyer.state || 'U.P';
+    document.getElementById('view-ch-buyer-code').textContent = currentInvoice.buyer.stateCode || '09';
 
-  // 7. Amount Chargeable in Words
-  let wordsText = currentInvoice.wordsOverride;
-  if (!wordsText) {
-    wordsText = numberToIndianWords(totals.grandTotal);
-  }
-  document.getElementById('view-amount-in-words').textContent = wordsText;
-
-  // 8. Tax Summary Table Box
-  document.getElementById('view-sum-taxable').textContent = Number(totals.totalTaxable).toFixed(2);
-  if (totals.taxMode === 'intra') {
-    document.getElementById('th-sum-sgst').textContent = '9% SGST';
-    document.getElementById('th-sum-cgst').textContent = '9% CGST';
-    document.getElementById('view-sum-sgst').textContent = Number(totals.sgstAmount).toFixed(2);
-    document.getElementById('view-sum-cgst').textContent = Number(totals.cgstAmount).toFixed(2);
-  } else {
-    document.getElementById('th-sum-sgst').textContent = 'IGST';
-    document.getElementById('th-sum-cgst').textContent = '-';
-    document.getElementById('view-sum-sgst').textContent = Number(totals.igstAmount).toFixed(2);
-    document.getElementById('view-sum-cgst').textContent = '0.00';
-  }
-  document.getElementById('view-sum-total-gst').textContent = Number(totals.totalGst).toFixed(2);
-
-  // 9. Details of Material Block (Zinc Job Work Ledger)
-  const matContainer = document.getElementById('view-material-container');
-  if (currentInvoice.material.show) {
-    matContainer.style.display = '';
-    document.getElementById('view-mat-date').textContent = formatDateDDMMYYYY(currentInvoice.material.date);
-    document.getElementById('view-mat-opening').textContent = formatQty(totals.material.opening);
-
-    // Render dynamic received rows on the printed bill
-    const rowsWrapper = document.getElementById('view-mat-received-rows-wrapper');
-    if (rowsWrapper) {
-      rowsWrapper.innerHTML = '';
-      const entries = (currentInvoice.material.receivedEntries && currentInvoice.material.receivedEntries.length > 0)
-        ? currentInvoice.material.receivedEntries
-        : [{ id: 'rec-fallback', date: currentInvoice.material.date, qty: totals.material.received, note: '' }];
-
-      entries.forEach(entry => {
-        const row = document.createElement('div');
-        row.className = 'mat-row mat-row-received';
-        const dateFormatted = entry.date ? formatDateDDMMYYYY(entry.date) : '';
-        const dateSpan = dateFormatted ? `<span class="mat-row-date">${dateFormatted}</span> ` : '';
-        const noteSpan = entry.note ? ` <span class="mat-note-suffix">(${entry.note})</span>` : '';
-        row.innerHTML = `
-          <div class="mat-label">${dateSpan}ZINC RAW MATERIAL RECEIVED${noteSpan}</div>
-          <div class="mat-val">${formatQty(entry.qty)}</div>
-        `;
-        rowsWrapper.appendChild(row);
-      });
+    // 3. Right Box Notes
+    const notesEl = document.getElementById('view-ch-notes-text');
+    if (notesEl) {
+      notesEl.textContent = currentInvoice.notes || '';
     }
 
-    document.getElementById('view-mat-total').textContent = formatQty(totals.material.total);
-    document.getElementById('view-mat-delivered').textContent = formatQty(totals.material.delivered);
-    document.getElementById('view-mat-loss').textContent = formatQty(totals.material.loss);
-    document.getElementById('view-mat-returned').textContent = totals.material.returned > 0 ? formatQty(totals.material.returned) : '';
-    document.getElementById('view-mat-balance').textContent = formatQty(totals.material.balance);
+    // 4. Line Items Table
+    const tbody = document.getElementById('view-challan-tbody');
+    tbody.innerHTML = '';
 
-    // Sidebar indicators
-    document.getElementById('mat-total').value = totals.material.total.toFixed(3);
-    document.getElementById('mat-balance').value = totals.material.balance.toFixed(3);
-    const stripVal = document.getElementById('mat-received-total-strip-val');
-    if (stripVal) stripVal.textContent = `${totals.material.received.toFixed(3)} Kg`;
-    document.getElementById('metric-mat-total').textContent = `${totals.material.total.toFixed(3)} Kg`;
-    document.getElementById('metric-mat-used').textContent = `${(totals.material.delivered + totals.material.loss).toFixed(3)} Kg`;
-    document.getElementById('metric-mat-bal').textContent = `${totals.material.balance.toFixed(3)} Kg`;
-  } else {
-    matContainer.style.display = 'none';
+    currentInvoice.items.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.className = 'challan-data-row';
+      const isNoneTax = item.taxType === 'none' || item.taxType === 'exempt';
+      const cgstStr = isNoneTax ? '-' : Number(item.cgst || 0).toFixed(3);
+      const sgstStr = isNoneTax ? '-' : Number(item.sgst || 0).toFixed(3);
+
+      tr.innerHTML = `
+        <td class="td-c-sno">${index + 1}</td>
+        <td class="td-c-desc">${escapeHtml(item.particulars || '')}</td>
+        <td class="td-c-qty">${formatQty(item.qty)}</td>
+        <td class="td-c-unit">${item.unit || ''}</td>
+        <td class="td-c-rate">${Number(item.rate || 0).toFixed(2)}</td>
+        <td class="td-c-amount">${Number(item.amount || 0).toFixed(3)}</td>
+        <td class="td-c-cgst" style="text-align: ${isNoneTax ? 'center' : 'right'}">${cgstStr}</td>
+        <td class="td-c-sgst" style="text-align: ${isNoneTax ? 'center' : 'right'}">${sgstStr}</td>
+        <td class="td-c-total">${Number(item.totalAmount || 0).toFixed(3)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Blank Spacer Rows to maintain authentic height (default 4 rows like image)
+    const minRows = parseInt(currentInvoice.minRows) || 4;
+    const blankNeeded = Math.max(0, minRows - currentInvoice.items.length);
+    for (let i = 0; i < blankNeeded; i++) {
+      const rowNum = currentInvoice.items.length + i + 1;
+      const tr = document.createElement('tr');
+      tr.className = 'challan-blank-row';
+      tr.innerHTML = `
+        <td class="td-c-sno">${rowNum}</td>
+        <td class="td-c-desc">&nbsp;</td>
+        <td class="td-c-qty">&nbsp;</td>
+        <td class="td-c-unit">&nbsp;</td>
+        <td class="td-c-rate">&nbsp;</td>
+        <td class="td-c-amount">&nbsp;</td>
+        <td class="td-c-cgst">&nbsp;</td>
+        <td class="td-c-sgst">&nbsp;</td>
+        <td class="td-c-total">&nbsp;</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // 5. Total Row
+    document.getElementById('view-ch-total-amount').textContent = totals.totalAmountSum.toFixed(3);
+    document.getElementById('view-ch-total-cgst').textContent = totals.totalCgstSum > 0 ? totals.totalCgstSum.toFixed(3) : '-';
+    document.getElementById('view-ch-total-sgst').textContent = totals.totalSgstSum > 0 ? totals.totalSgstSum.toFixed(3) : '-';
+    document.getElementById('view-ch-grand-total').textContent = totals.grandTotalSum.toFixed(3);
+
+    // 6. Amount in Words
+    const wordsText = currentInvoice.wordsOverride || numberToIndianWords(totals.grandTotalSum);
+    document.getElementById('view-ch-words').textContent = wordsText;
+
+    // 7. Stamp & Signature
+    const stampEl = document.getElementById('view-ch-stamp');
+    if (stampEl) {
+      stampEl.style.display = currentInvoice.stamp?.show ? 'block' : 'none';
+      stampEl.style.transform = `rotate(${currentInvoice.stamp?.rotation || -7}deg)`;
+    }
+
+    const sigEl = document.getElementById('view-ch-signature');
+    const sigImg = document.getElementById('view-ch-sig-img');
+    if (sigEl && sigImg) {
+      if (currentInvoice.signature?.show && currentInvoice.signature?.dataUrl) {
+        sigEl.style.display = 'block';
+        sigImg.src = currentInvoice.signature.dataUrl;
+        sigImg.style.display = 'block';
+      } else {
+        sigEl.style.display = 'none';
+        sigImg.style.display = 'none';
+      }
+    }
+
+    const captionEl = document.getElementById('view-ch-sign-caption');
+    if (captionEl) {
+      captionEl.textContent = currentInvoice.signature?.caption || FIXED_SELLER.signCaption;
+    }
   }
 
-  // 10. Bank Details (Strictly Locked)
-  document.getElementById('view-bank-name').textContent = FIXED_SELLER.bankName;
-  document.getElementById('view-bank-branch').textContent = FIXED_SELLER.branch;
-  document.getElementById('view-bank-ac').textContent = FIXED_SELLER.acNo;
-  document.getElementById('view-bank-ifsc').textContent = FIXED_SELLER.ifsc;
+  // ---------------------------------------------------------------------------
+  // B. RENDER COMMERCIAL TAX INVOICE (SECOND MODE)
+  // ---------------------------------------------------------------------------
+  if (sheetInvoice && !isChallan) {
+    document.getElementById('view-seller-name').textContent = FIXED_SELLER.name;
+    document.getElementById('view-seller-address').textContent = 'AGRAWAL STREET, SHAKTI NAGAR, GULAR ROAD, ALIGARH 202001 (UP) - INDIA';
+    document.getElementById('view-seller-mobile').textContent = FIXED_SELLER.mobile;
+    document.getElementById('view-seller-gstin').textContent = FIXED_SELLER.gstin;
+    document.getElementById('view-seller-statecode').textContent = FIXED_SELLER.stateCode;
 
-  // 11. Signatory & Stamp
-  const stampEl = document.getElementById('view-rubber-stamp');
-  stampEl.style.display = currentInvoice.stamp.show ? 'block' : 'none';
-  stampEl.style.transform = `rotate(${currentInvoice.stamp.rotation}deg)`;
+    document.getElementById('view-inv-number').textContent = currentInvoice.invoiceNumber || currentInvoice.challanNo || '001';
+    document.getElementById('view-inv-date').textContent = formatDateDDMMYYYY(currentInvoice.invoiceDate || currentInvoice.challanDate);
+    document.getElementById('view-copy-type').textContent = currentInvoice.copyType || 'ORIGINAL';
+    document.getElementById('view-inv-category').textContent = currentInvoice.category || 'JOB WORK';
 
-  const sigEl = document.getElementById('view-seller-signature');
-  const sigImg = document.getElementById('view-sig-img');
-  if (currentInvoice.signature.show && currentInvoice.signature.dataUrl) {
-    sigEl.style.display = 'block';
-    sigImg.src = currentInvoice.signature.dataUrl;
-    sigImg.style.display = 'block';
-  } else {
-    sigEl.style.display = 'none';
-    sigImg.style.display = 'none';
+    document.getElementById('view-buyer-name').textContent = currentInvoice.buyer.name || 'M/s EVERSHINE SALES';
+    document.getElementById('view-buyer-addr1').textContent = currentInvoice.buyer.addr1 || '';
+    document.getElementById('view-buyer-addr2').textContent = currentInvoice.buyer.addr2 || '';
+    document.getElementById('view-buyer-city-pin').textContent = currentInvoice.buyer.cityPin || 'ALIGARH - 202001';
+    document.getElementById('view-buyer-gstin').textContent = currentInvoice.buyer.gstin || '';
+    document.getElementById('view-buyer-state').textContent = currentInvoice.buyer.state || 'UTTAR PRADESH';
+    document.getElementById('view-buyer-statecode').textContent = currentInvoice.buyer.stateCode || '09';
+
+    // Consignment
+    document.getElementById('view-cons-transport').textContent = currentInvoice.consignment.transport || '';
+    document.getElementById('view-cons-lr-no').textContent = currentInvoice.consignment.lrNo || '';
+    document.getElementById('view-cons-veh-no').textContent = currentInvoice.consignment.vehNo || '';
+    document.getElementById('view-cons-ewb-no').textContent = currentInvoice.consignment.ewbNo || '';
+    document.getElementById('view-cons-place-supply').textContent = currentInvoice.consignment.placeOfSupply || 'ALIGARH (09)';
+    document.getElementById('view-cons-no-cases').textContent = currentInvoice.consignment.noOfCases || '';
+    document.getElementById('view-cons-reverse-charge').textContent = currentInvoice.consignment.reverseCharge || 'NO';
+    document.getElementById('view-cons-weight').textContent = formatQty(currentInvoice.consignment.weight);
+    document.getElementById('view-cons-freight').textContent = (currentInvoice.consignment.freight || 0).toString();
+
+    // Table
+    const invTbody = document.getElementById('view-items-tbody');
+    invTbody.innerHTML = '';
+    currentInvoice.items.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.className = 'item-data-row';
+      tr.innerHTML = `
+        <td class="cell-sno">${index + 1}</td>
+        <td class="cell-particulars">${escapeHtml(item.particulars || '')}</td>
+        <td class="cell-hsn">9988</td>
+        <td class="cell-qty">${formatQty(item.qty)}</td>
+        <td class="cell-rate">${Number(item.rate || 0).toFixed(0)}</td>
+        <td class="cell-amount">${Number(item.amount || 0).toFixed(2)}</td>
+      `;
+      invTbody.appendChild(tr);
+    });
+
+    const blankNeeded = Math.max(0, 4 - currentInvoice.items.length);
+    for (let i = 0; i < blankNeeded; i++) {
+      const tr = document.createElement('tr');
+      tr.className = 'blank-item-row';
+      tr.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+      invTbody.appendChild(tr);
+    }
+
+    document.getElementById('view-total-taxable').textContent = totals.totalAmountSum.toFixed(2);
+    document.getElementById('view-total-sgst').textContent = totals.totalSgstSum.toFixed(2);
+    document.getElementById('view-total-cgst').textContent = totals.totalCgstSum.toFixed(2);
+    document.getElementById('view-grand-total').textContent = totals.grandTotalSum.toFixed(2);
+    document.getElementById('view-amount-in-words').textContent = currentInvoice.wordsOverride || numberToIndianWords(totals.grandTotalSum);
+
+    // Tax Summary
+    document.getElementById('view-sum-taxable').textContent = totals.totalTaxableSum.toFixed(2);
+    document.getElementById('view-sum-sgst').textContent = totals.totalSgstSum.toFixed(2);
+    document.getElementById('view-sum-cgst').textContent = totals.totalCgstSum.toFixed(2);
+    document.getElementById('view-sum-total-gst').textContent = (totals.totalCgstSum + totals.totalSgstSum).toFixed(2);
+
+    // Material Ledger
+    const matContainer = document.getElementById('view-material-container');
+    if (currentInvoice.material?.show) {
+      matContainer.style.display = '';
+      document.getElementById('view-mat-date').textContent = formatDateDDMMYYYY(currentInvoice.material.date);
+      document.getElementById('view-mat-opening').textContent = formatQty(totals.material.opening);
+
+      const rowsWrapper = document.getElementById('view-mat-received-rows-wrapper');
+      if (rowsWrapper) {
+        rowsWrapper.innerHTML = '';
+        const entries = currentInvoice.material.receivedEntries || [];
+        entries.forEach(entry => {
+          const row = document.createElement('div');
+          row.className = 'mat-row mat-row-received';
+          const dt = entry.date ? formatDateDDMMYYYY(entry.date) + ' ' : '';
+          const nt = entry.note ? ` (${entry.note})` : '';
+          row.innerHTML = `<div class="mat-label">${dt}ZINC RAW MATERIAL RECEIVED${nt}</div><div class="mat-val">${formatQty(entry.qty)}</div>`;
+          rowsWrapper.appendChild(row);
+        });
+      }
+
+      document.getElementById('view-mat-total').textContent = formatQty(totals.material.total);
+      document.getElementById('view-mat-delivered').textContent = formatQty(totals.material.delivered);
+      document.getElementById('view-mat-loss').textContent = formatQty(totals.material.loss);
+      document.getElementById('view-mat-returned').textContent = totals.material.returned > 0 ? formatQty(totals.material.returned) : '';
+      document.getElementById('view-mat-balance').textContent = formatQty(totals.material.balance);
+    } else {
+      matContainer.style.display = 'none';
+    }
+
+    // Rubber stamp & Signature
+    const stampElInv = document.getElementById('view-rubber-stamp');
+    if (stampElInv) {
+      stampElInv.style.display = currentInvoice.stamp?.show ? 'block' : 'none';
+      stampElInv.style.transform = `rotate(${currentInvoice.stamp?.rotation || -7}deg)`;
+    }
+    const sigElInv = document.getElementById('view-seller-signature');
+    const sigImgInv = document.getElementById('view-sig-img');
+    if (sigElInv && sigImgInv) {
+      if (currentInvoice.signature?.show && currentInvoice.signature?.dataUrl) {
+        sigElInv.style.display = 'block';
+        sigImgInv.src = currentInvoice.signature.dataUrl;
+        sigImgInv.style.display = 'block';
+      } else {
+        sigElInv.style.display = 'none';
+        sigImgInv.style.display = 'none';
+      }
+    }
   }
 
-  document.getElementById('view-sign-caption').textContent = currentInvoice.signature.caption || FIXED_SELLER.signCaption;
+  // Quick total in footer
+  document.getElementById('quick-total-display').textContent = 'Rs. ' + totals.grandTotalSum.toFixed(3);
 }
 
 // =============================================================================
-// 6. DOM Synchronization: Update Editor Fields from State
+// 7. DOM Synchronization: Update Editor Fields from State
 // =============================================================================
 function populateEditorFields() {
-  // Invoice Meta
-  document.getElementById('inv-number').value = currentInvoice.invoiceNumber;
-  document.getElementById('inv-date').value = currentInvoice.invoiceDate;
-  document.getElementById('inv-copy-type').value = currentInvoice.copyType;
+  const isChallan = currentInvoice.templateType === 'challan';
+
+  // Template switch buttons
+  const btnChallan = document.getElementById('btn-tmpl-challan');
+  const btnInvoice = document.getElementById('btn-tmpl-invoice');
+  if (btnChallan && btnInvoice) {
+    if (isChallan) {
+      btnChallan.classList.add('active');
+      btnInvoice.classList.remove('active');
+    } else {
+      btnInvoice.classList.add('active');
+      btnChallan.classList.remove('active');
+    }
+  }
+
+  // Mode indicators
+  const indicator = document.getElementById('tmpl-mode-indicator');
+  if (indicator) {
+    indicator.textContent = isChallan ? 'JobWork Mode' : 'Tax Invoice Mode';
+  }
+
+  const lblInv = document.getElementById('lbl-inv-number');
+  if (lblInv) {
+    lblInv.textContent = isChallan ? 'Ch. No. *' : 'Invoice No. *';
+  }
+
+  const tabMetaLabel = document.getElementById('tab-label-meta');
+  if (tabMetaLabel) {
+    tabMetaLabel.textContent = isChallan ? 'Challan Info' : 'Invoice Info';
+  }
+
+  // Meta inputs
+  document.getElementById('inv-number').value = isChallan ? (currentInvoice.challanNo || '21') : (currentInvoice.invoiceNumber || '001');
+  document.getElementById('inv-date').value = currentInvoice.challanDate || currentInvoice.invoiceDate || '2026-09-30';
+  document.getElementById('date-display-hint').innerHTML = `Displays as: <strong>${formatDateDDMMYYYYDot(document.getElementById('inv-date').value)}</strong>`;
+
+  // Notes
+  const notesInput = document.getElementById('challan-notes-input');
+  if (notesInput) {
+    notesInput.value = currentInvoice.notes || '';
+  }
 
   // Buyer Details
   document.getElementById('buyer-name').value = currentInvoice.buyer.name || '';
   document.getElementById('buyer-addr1').value = currentInvoice.buyer.addr1 || '';
   document.getElementById('buyer-addr2').value = currentInvoice.buyer.addr2 || '';
-  document.getElementById('buyer-city-pin').value = currentInvoice.buyer.cityPin || '';
   document.getElementById('buyer-gstin').value = currentInvoice.buyer.gstin || '';
   document.getElementById('buyer-state').value = currentInvoice.buyer.state || '';
   document.getElementById('buyer-state-code').value = currentInvoice.buyer.stateCode || '';
 
-  // Consignment Details
-  document.getElementById('cons-transport').value = currentInvoice.consignment.transport || '';
-  document.getElementById('cons-lr-no').value = currentInvoice.consignment.lrNo || '';
-  document.getElementById('cons-veh-no').value = currentInvoice.consignment.vehNo || '';
-  document.getElementById('cons-ewb-no').value = currentInvoice.consignment.ewbNo || '';
-  document.getElementById('cons-place-supply').value = currentInvoice.consignment.placeOfSupply || '';
-  document.getElementById('cons-no-cases').value = currentInvoice.consignment.noOfCases || '';
-  document.getElementById('cons-reverse-charge').value = currentInvoice.consignment.reverseCharge || '';
-  document.getElementById('cons-weight').value = currentInvoice.consignment.weight || 0;
-  document.getElementById('cons-freight').value = currentInvoice.consignment.freight || 0;
+  // Settings
+  const minRowsInput = document.getElementById('setting-min-rows');
+  if (minRowsInput) minRowsInput.value = currentInvoice.minRows || 4;
 
-  // Items Render
+  const roundoffToggle = document.getElementById('toggle-roundoff');
+  if (roundoffToggle) roundoffToggle.checked = currentInvoice.autoRoundoff !== false;
+
+  const wordsOverride = document.getElementById('words-override-input');
+  if (wordsOverride) wordsOverride.value = currentInvoice.wordsOverride || '';
+
+  // Stamp & Sign
+  const toggleStamp = document.getElementById('toggle-stamp');
+  if (toggleStamp) toggleStamp.checked = currentInvoice.stamp?.show !== false;
+
+  const stampColor = document.getElementById('stamp-color');
+  if (stampColor) stampColor.value = currentInvoice.stamp?.color || '#1d4ed8';
+
+  const stampRot = document.getElementById('stamp-rotation');
+  if (stampRot) stampRot.value = currentInvoice.stamp?.rotation || -7;
+
+  const toggleSig = document.getElementById('toggle-signature');
+  if (toggleSig) toggleSig.checked = currentInvoice.signature?.show !== false;
+
+  const signCaption = document.getElementById('sign-caption-input');
+  if (signCaption) signCaption.value = currentInvoice.signature?.caption || 'Authorised Signatury';
+
+  // Render dynamic items editor
   renderItemEditorCards();
-
-  // Taxes & Round off
-  document.getElementById('tax-mode').value = currentInvoice.taxMode;
-  document.getElementById('auto-detect-tax').checked = currentInvoice.autoDetectTax;
-  document.getElementById('toggle-roundoff').checked = currentInvoice.autoRoundoff;
-  document.getElementById('custom-roundoff').value = currentInvoice.customRoundoff;
-  document.getElementById('custom-roundoff').disabled = currentInvoice.autoRoundoff;
-  document.getElementById('words-override-input').value = currentInvoice.wordsOverride || '';
-
-  // Material Ledger
-  document.getElementById('toggle-material-table').checked = currentInvoice.material.show;
-  document.getElementById('mat-date').value = currentInvoice.material.date;
-  document.getElementById('mat-opening').value = currentInvoice.material.opening;
-  renderMaterialReceivedEditor();
-  document.getElementById('mat-delivered').value = currentInvoice.material.delivered;
-  document.getElementById('mat-loss').value = currentInvoice.material.loss;
-  document.getElementById('mat-returned').value = currentInvoice.material.returned;
-
-  // Sign & Stamp
-  document.getElementById('toggle-stamp').checked = currentInvoice.stamp.show;
-  document.getElementById('stamp-color').value = currentInvoice.stamp.color;
-  document.getElementById('stamp-rotation').value = currentInvoice.stamp.rotation;
-  document.getElementById('toggle-signature').checked = currentInvoice.signature.show;
-  document.getElementById('signatory-label').value = currentInvoice.signature.caption;
-
-  // Refresh saved counts
-  updateSavedInvoiceCount();
-  populateSavedBuyerDropdown();
+  renderInvoiceSheet();
 }
 
-// Render dynamic item cards in Editor sidebar
+// =============================================================================
+// 8. Product Items Editor Rendering
+// =============================================================================
 function renderItemEditorCards() {
   const container = document.getElementById('items-editor-container');
+  if (!container) return;
+
   container.innerHTML = '';
+  document.getElementById('items-badge-count').textContent = currentInvoice.items.length;
 
   currentInvoice.items.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = 'item-edit-card';
-    card.dataset.itemId = item.id;
+    card.dataset.index = index;
+
+    const amount = Number(item.amount || 0).toFixed(3);
+    const totalAmount = Number(item.totalAmount || 0).toFixed(3);
+    const taxType = item.taxType || 'none';
+
     card.innerHTML = `
       <div class="item-edit-header">
-        <span class="item-edit-title">Item #${index + 1}</span>
-        ${currentInvoice.items.length > 1 ? `<button type="button" class="btn-del-item" data-id="${item.id}">Delete</button>` : ''}
+        <span class="item-edit-title">Product / Item #${index + 1}</span>
+        <div class="flex-align-gap">
+          <button type="button" class="btn btn-sm btn-ghost btn-dup-item" data-index="${index}" title="Duplicate this item">Duplicate</button>
+          ${currentInvoice.items.length > 1 ? `<button type="button" class="btn-del-item" data-index="${index}">Delete Row</button>` : ''}
+        </div>
       </div>
+
+      <!-- Description Textarea (Multi-line support) -->
       <div class="form-group">
-        <label>Particulars (Description) *</label>
-        <input type="text" class="form-control item-particulars" value="${item.particulars || ''}" placeholder="e.g. ZINC DIE CASTING CHARGES">
+        <label>Description (Multi-line formatted text) *</label>
+        <textarea class="form-control item-particulars" rows="2" placeholder="e.g. Production/Processing : -&#10;RECIECVED ZINC SCRAP 23-09-2026&#10;CHALLAN NO. 003">${item.particulars || ''}</textarea>
       </div>
+
       <div class="form-row">
         <div class="form-group flex-1">
-          <label>HSN/SAC Code</label>
-          <input type="text" class="form-control item-hsn" value="${item.hsn || '9988'}" placeholder="9988">
+          <label>Weight / QTY *</label>
+          <input type="number" step="0.001" class="form-control item-qty font-bold" value="${item.qty !== undefined ? item.qty : ''}" placeholder="405.350" required>
+        </div>
+        <div class="form-group" style="width: 90px;">
+          <label>Unit</label>
+          <input type="text" class="form-control item-unit" value="${item.unit || 'Kgs'}" placeholder="Kgs">
         </div>
         <div class="form-group flex-1">
-          <label>Quantity (Kg)</label>
-          <input type="number" step="0.001" class="form-control item-qty" value="${item.qty || 0}">
+          <label>Rate (Rs.) *</label>
+          <input type="number" step="0.01" class="form-control item-rate" value="${item.rate !== undefined ? item.rate : ''}" placeholder="305.00" required>
+        </div>
+      </div>
+
+      <div class="form-row align-center">
+        <div class="form-group flex-2">
+          <label>GST Tax Treatment</label>
+          <select class="form-control item-tax-type">
+            <option value="none" ${taxType === 'none' ? 'selected' : ''}>Non-Taxable / Scrap Movement (Nil / '-')</option>
+            <option value="intra" ${taxType === 'intra' ? 'selected' : ''}>Job Work GST 18% (9% CGST + 9% SGST)</option>
+            <option value="inter" ${taxType === 'inter' ? 'selected' : ''}>Inter-State IGST 18%</option>
+          </select>
         </div>
         <div class="form-group flex-1">
-          <label>Rate (Rs.)</label>
-          <input type="number" step="0.01" class="form-control item-rate" value="${item.rate || 0}">
+          <label class="small-label">Calculated Amount</label>
+          <div class="font-bold text-muted" style="font-size:0.85rem; padding-top:6px;">₹${amount}</div>
+        </div>
+        <div class="form-group flex-1">
+          <label class="small-label">Row Total</label>
+          <div class="font-bold" style="font-size:0.85rem; padding-top:6px; color:var(--primary);">₹${totalAmount}</div>
         </div>
       </div>
     `;
+
     container.appendChild(card);
   });
 
-  document.getElementById('items-badge-count').textContent = currentInvoice.items.length;
-
-  // Attach input listeners
-  container.querySelectorAll('.item-particulars').forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
+  // Attach event listeners to item inputs
+  container.querySelectorAll('.item-particulars').forEach((textarea, idx) => {
+    textarea.addEventListener('input', (e) => {
       currentInvoice.items[idx].particulars = e.target.value;
-      renderInvoiceSheet();
-    });
-  });
-
-  container.querySelectorAll('.item-hsn').forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
-      currentInvoice.items[idx].hsn = e.target.value;
       renderInvoiceSheet();
     });
   });
@@ -680,6 +811,14 @@ function renderItemEditorCards() {
     input.addEventListener('input', (e) => {
       currentInvoice.items[idx].qty = parseFloat(e.target.value) || 0;
       renderInvoiceSheet();
+      updateCardComputedValues(idx);
+    });
+  });
+
+  container.querySelectorAll('.item-unit').forEach((input, idx) => {
+    input.addEventListener('input', (e) => {
+      currentInvoice.items[idx].unit = e.target.value;
+      renderInvoiceSheet();
     });
   });
 
@@ -687,321 +826,316 @@ function renderItemEditorCards() {
     input.addEventListener('input', (e) => {
       currentInvoice.items[idx].rate = parseFloat(e.target.value) || 0;
       renderInvoiceSheet();
+      updateCardComputedValues(idx);
+    });
+  });
+
+  container.querySelectorAll('.item-tax-type').forEach((select, idx) => {
+    select.addEventListener('change', (e) => {
+      currentInvoice.items[idx].taxType = e.target.value;
+      renderInvoiceSheet();
+      updateCardComputedValues(idx);
     });
   });
 
   container.querySelectorAll('.btn-del-item').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const id = e.target.dataset.id;
-      currentInvoice.items = currentInvoice.items.filter(item => item.id !== id);
+      const idx = parseInt(e.target.dataset.index, 10);
+      currentInvoice.items.splice(idx, 1);
       renderItemEditorCards();
       renderInvoiceSheet();
+      showToast('Item row removed', 'toast-info');
+    });
+  });
+
+  container.querySelectorAll('.btn-dup-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.index, 10);
+      const cloned = JSON.parse(JSON.stringify(currentInvoice.items[idx]));
+      cloned.id = 'item-' + Date.now();
+      currentInvoice.items.splice(idx + 1, 0, cloned);
+      renderItemEditorCards();
+      renderInvoiceSheet();
+      showToast('Item duplicated', 'toast-success');
     });
   });
 }
 
+function updateCardComputedValues(idx) {
+  const card = document.querySelector(`.item-edit-card[data-index="${idx}"]`);
+  if (!card) return;
+  const item = currentInvoice.items[idx];
+  if (!item) return;
+
+  calculateBillTotals();
+  const amountDiv = card.querySelectorAll('.font-bold')[0];
+  const totalDiv = card.querySelectorAll('.font-bold')[1];
+  if (amountDiv) amountDiv.textContent = '₹' + Number(item.amount || 0).toFixed(3);
+  if (totalDiv) totalDiv.textContent = '₹' + Number(item.totalAmount || 0).toFixed(3);
+}
+
 // =============================================================================
-// 7. Buyer Directory Management
+// 9. Buyer Directory & Saved Database
 // =============================================================================
 function getSavedBuyers() {
-  try {
-    const raw = localStorage.getItem('sk_saved_buyers');
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    console.error('Error reading buyers:', e);
+  const saved = localStorage.getItem('sk_saved_buyers');
+  if (saved) {
+    try { return JSON.parse(saved); } catch (e) {}
   }
   return DEFAULT_BUYERS;
 }
 
-function saveBuyersList(buyers) {
-  localStorage.setItem('sk_saved_buyers', JSON.stringify(buyers));
-  populateSavedBuyerDropdown();
-  updateBuyerDirectoryModal();
+function saveBuyers(list) {
+  localStorage.setItem('sk_saved_buyers', JSON.stringify(list));
+  populateBuyerSelector();
+  updateBuyerCountBadge();
 }
 
-function populateSavedBuyerDropdown() {
+function populateBuyerSelector() {
   const select = document.getElementById('select-saved-buyer');
+  if (!select) return;
+
   const buyers = getSavedBuyers();
   select.innerHTML = '<option value="">-- Choose Existing Buyer --</option>';
 
   buyers.forEach(b => {
     const opt = document.createElement('option');
-    opt.value = b.id;
-    opt.textContent = `${b.name} (${b.cityPin || b.state})`;
+    opt.value = b.id || b.name;
+    opt.textContent = `${b.name} (${b.cityPin || b.state || ''})`;
     select.appendChild(opt);
   });
-
-  const countBadge = document.getElementById('buyer-count');
-  if (countBadge) countBadge.textContent = buyers.length;
 }
 
-function loadBuyerIntoForm(buyerId) {
-  const buyers = getSavedBuyers();
-  const buyer = buyers.find(b => b.id === buyerId);
-  if (!buyer) return;
-
-  currentInvoice.buyer.name = buyer.name;
-  currentInvoice.buyer.addr1 = buyer.addr1;
-  currentInvoice.buyer.addr2 = buyer.addr2;
-  currentInvoice.buyer.cityPin = buyer.cityPin;
-  currentInvoice.buyer.gstin = buyer.gstin;
-  currentInvoice.buyer.state = buyer.state;
-  currentInvoice.buyer.stateCode = buyer.stateCode;
-
-  populateEditorFields();
-  renderInvoiceSheet();
-  showToast(`Buyer loaded: ${buyer.name}`, 'toast-success');
+function updateBuyerCountBadge() {
+  const count = getSavedBuyers().length;
+  const el1 = document.getElementById('buyer-count');
+  const el2 = document.getElementById('modal-buyer-count');
+  if (el1) el1.textContent = count;
+  if (el2) el2.textContent = `${count} Buyers`;
 }
 
-function saveCurrentBuyerToDirectory() {
-  const name = (currentInvoice.buyer.name || '').trim();
-  if (!name) {
-    showToast('Please enter a Buyer Name first.', 'toast-error');
-    return;
-  }
-
-  const buyers = getSavedBuyers();
-  const existingIdx = buyers.findIndex(b => b.name.toLowerCase() === name.toLowerCase());
-
-  const newBuyerObj = {
-    id: 'buyer-' + Date.now(),
-    name: currentInvoice.buyer.name,
-    addr1: currentInvoice.buyer.addr1,
-    addr2: currentInvoice.buyer.addr2,
-    cityPin: currentInvoice.buyer.cityPin,
-    gstin: currentInvoice.buyer.gstin,
-    state: currentInvoice.buyer.state,
-    stateCode: currentInvoice.buyer.stateCode
-  };
-
-  if (existingIdx >= 0) {
-    buyers[existingIdx] = newBuyerObj;
-    showToast(`Updated saved buyer: ${name}`, 'toast-success');
-  } else {
-    buyers.push(newBuyerObj);
-    showToast(`Saved ${name} to Buyer Directory`, 'toast-success');
-  }
-
-  saveBuyersList(buyers);
-}
-
-function updateBuyerDirectoryModal() {
-  const listEl = document.getElementById('buyer-directory-list');
-  const countEl = document.getElementById('modal-buyer-count');
-  const buyers = getSavedBuyers();
-
-  if (countEl) countEl.textContent = `${buyers.length} Buyers`;
-  if (!listEl) return;
-
-  if (buyers.length === 0) {
-    listEl.innerHTML = '<p class="text-muted text-center py-4">No saved buyers in directory.</p>';
-    return;
-  }
-
-  listEl.innerHTML = '';
-  buyers.forEach(b => {
-    const card = document.createElement('div');
-    card.className = 'saved-item-card';
-    card.innerHTML = `
-      <div class="saved-item-info">
-        <span class="saved-item-title">${b.name}</span>
-        <span class="saved-item-meta">${b.cityPin || ''} • GSTIN: ${b.gstin || 'Unregistered'} • State: ${b.state || ''} (${b.stateCode || ''})</span>
-      </div>
-      <div class="saved-item-actions">
-        <button type="button" class="btn btn-sm btn-primary btn-load-buyer-modal" data-id="${b.id}">Load</button>
-        <button type="button" class="btn btn-sm btn-ghost text-danger btn-del-buyer-modal" data-id="${b.id}">Delete</button>
-      </div>
-    `;
-    listEl.appendChild(card);
-  });
-
-  listEl.querySelectorAll('.btn-load-buyer-modal').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      loadBuyerIntoForm(e.target.dataset.id);
-      document.getElementById('modal-buyer-directory').close();
-    });
-  });
-
-  listEl.querySelectorAll('.btn-del-buyer-modal').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.target.dataset.id;
-      const updated = getSavedBuyers().filter(b => b.id !== id);
-      saveBuyersList(updated);
-      showToast('Buyer removed from directory.', 'toast-info');
-    });
-  });
-}
-
-// =============================================================================
-// 8. Saved Invoices History (LocalStorage Database)
-// =============================================================================
 function getSavedInvoices() {
-  try {
-    const raw = localStorage.getItem('sk_saved_invoices');
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    console.error('Error reading saved invoices:', e);
+  const saved = localStorage.getItem('sk_saved_invoices');
+  if (saved) {
+    try { return JSON.parse(saved); } catch (e) {}
   }
   return [];
 }
 
-function updateSavedInvoiceCount() {
-  const countEl = document.getElementById('saved-count');
-  if (countEl) {
-    countEl.textContent = getSavedInvoices().length;
-  }
-}
-
-function saveCurrentInvoice() {
-  const invoices = getSavedInvoices();
-  const invoiceId = currentInvoice.invoiceNumber || 'INV-' + Date.now();
-  const totals = calculateBillTotals();
-
-  const record = {
-    id: invoiceId,
-    timestamp: new Date().toISOString(),
-    invoiceNumber: currentInvoice.invoiceNumber,
-    invoiceDate: currentInvoice.invoiceDate,
-    buyerName: currentInvoice.buyer.name || 'Unspecified Buyer',
-    grandTotal: totals.grandTotal,
-    data: JSON.parse(JSON.stringify(currentInvoice))
-  };
-
-  const existingIndex = invoices.findIndex(inv => inv.id === invoiceId);
-  if (existingIndex >= 0) {
-    invoices[existingIndex] = record;
-    showToast(`Invoice #${invoiceId} updated in history!`, 'toast-success');
-  } else {
-    invoices.unshift(record);
-    showToast(`Invoice #${invoiceId} saved to database!`, 'toast-success');
-  }
-
-  localStorage.setItem('sk_saved_invoices', JSON.stringify(invoices));
+function saveInvoicesToDb(list) {
+  localStorage.setItem('sk_saved_invoices', JSON.stringify(list));
   updateSavedInvoiceCount();
 }
 
-function updateSavedInvoicesModal(query = '') {
-  const listEl = document.getElementById('saved-invoices-list');
-  const countBadge = document.getElementById('modal-invoice-count');
-  const invoices = getSavedInvoices();
+function updateSavedInvoiceCount() {
+  const count = getSavedInvoices().length;
+  const el1 = document.getElementById('saved-count');
+  const el2 = document.getElementById('modal-invoice-count');
+  if (el1) el1.textContent = count;
+  if (el2) el2.textContent = `${count} Bills`;
+}
 
-  let filtered = invoices;
-  if (query.trim()) {
-    const q = query.toLowerCase();
-    filtered = invoices.filter(inv => 
-      (inv.invoiceNumber && inv.invoiceNumber.toLowerCase().includes(q)) ||
-      (inv.buyerName && inv.buyerName.toLowerCase().includes(q))
-    );
+function saveCurrentBillToDb() {
+  const totals = calculateBillTotals();
+  const isChallan = currentInvoice.templateType === 'challan';
+  const docNo = isChallan ? (currentInvoice.challanNo || '21') : (currentInvoice.invoiceNumber || '001');
+  const docDate = isChallan ? currentInvoice.challanDate : currentInvoice.invoiceDate;
+
+  const record = {
+    id: 'bill-' + Date.now(),
+    templateType: currentInvoice.templateType || 'challan',
+    docNo: docNo,
+    docDate: docDate,
+    buyerName: currentInvoice.buyer.name || 'M/s EVERSHINE SALES',
+    buyerGstin: currentInvoice.buyer.gstin || '',
+    grandTotal: totals.grandTotalSum,
+    savedAt: new Date().toISOString(),
+    data: JSON.parse(JSON.stringify(currentInvoice))
+  };
+
+  const list = getSavedInvoices();
+  // Check if updating existing
+  const existingIdx = list.findIndex(item => item.docNo === docNo && item.templateType === record.templateType);
+  if (existingIdx >= 0) {
+    list[existingIdx] = record;
+  } else {
+    list.unshift(record);
   }
 
-  if (countBadge) countBadge.textContent = `${invoices.length} Invoices`;
+  saveInvoicesToDb(list);
+  showToast(`Saved Bill #${docNo} for ${record.buyerName}`, 'toast-success');
+}
+
+function updateSavedInvoicesModal(searchQuery = '') {
+  const container = document.getElementById('saved-invoices-list');
+  if (!container) return;
+
+  const list = getSavedInvoices();
+  const q = searchQuery.toLowerCase().trim();
+
+  const filtered = list.filter(item => {
+    return (item.docNo && item.docNo.toLowerCase().includes(q)) ||
+           (item.buyerName && item.buyerName.toLowerCase().includes(q)) ||
+           (item.docDate && item.docDate.includes(q));
+  });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<p class="text-muted text-center py-4">No matching invoices found.</p>';
+    container.innerHTML = `<div class="empty-state-card">No bills found in database. Click "Save Bill" to store invoices.</div>`;
     return;
   }
 
-  listEl.innerHTML = '';
-  filtered.forEach(inv => {
+  container.innerHTML = '';
+  filtered.forEach(item => {
     const card = document.createElement('div');
-    card.className = 'saved-item-card';
+    card.className = 'saved-inv-card';
+    const isChallan = item.templateType === 'challan';
     card.innerHTML = `
-      <div class="saved-item-info">
-        <span class="saved-item-title">Invoice #${inv.invoiceNumber} - ${inv.buyerName}</span>
-        <span class="saved-item-meta">Date: ${formatDateDDMMYYYY(inv.invoiceDate)} • Total: Rs. ${formatCurrency(inv.grandTotal)}</span>
+      <div class="saved-inv-info">
+        <div class="saved-inv-title-row">
+          <strong class="saved-inv-num">${isChallan ? 'Challan #' : 'Invoice #'}${item.docNo}</strong>
+          <span class="badge-tmpl-tag">${isChallan ? 'JobWork Challan' : 'Tax Invoice'}</span>
+          <span class="saved-inv-date">${formatDateDDMMYYYYDot(item.docDate)}</span>
+        </div>
+        <div class="saved-inv-buyer">${escapeHtml(item.buyerName)}</div>
+        <div class="saved-inv-meta">GSTIN: ${escapeHtml(item.buyerGstin || 'N/A')}</div>
       </div>
-      <div class="saved-item-actions">
-        <button type="button" class="btn btn-sm btn-primary btn-load-saved-inv" data-id="${inv.id}">Open</button>
-        <button type="button" class="btn btn-sm btn-outline btn-download-single-pdf" data-id="${inv.id}" title="Download this invoice as a PDF file">PDF</button>
-        <button type="button" class="btn btn-sm btn-ghost text-danger btn-del-saved-inv" data-id="${inv.id}">Delete</button>
+      <div class="saved-inv-actions">
+        <strong class="saved-inv-amount">₹${Number(item.grandTotal || 0).toFixed(3)}</strong>
+        <div class="btn-group-row">
+          <button type="button" class="btn btn-sm btn-primary btn-load-saved" data-id="${item.id}">Load</button>
+          <button type="button" class="btn btn-sm btn-outline btn-pdf-saved" data-id="${item.id}">PDF</button>
+          <button type="button" class="btn btn-sm btn-ghost btn-del-saved text-danger" data-id="${item.id}">Delete</button>
+        </div>
       </div>
     `;
-    listEl.appendChild(card);
+    container.appendChild(card);
   });
 
-  listEl.querySelectorAll('.btn-load-saved-inv').forEach(btn => {
+  // Attach actions
+  container.querySelectorAll('.btn-load-saved').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.dataset.id;
-      const target = invoices.find(i => i.id === id);
-      if (target) {
-        currentInvoice = JSON.parse(JSON.stringify(target.data));
+      const found = list.find(it => it.id === id);
+      if (found && found.data) {
+        currentInvoice = JSON.parse(JSON.stringify(found.data));
         populateEditorFields();
-        renderInvoiceSheet();
         document.getElementById('modal-saved-invoices').close();
-        showToast(`Loaded Invoice #${target.invoiceNumber}`, 'toast-success');
+        showToast(`Loaded Bill #${found.docNo}`, 'toast-success');
       }
     });
   });
 
-  listEl.querySelectorAll('.btn-download-single-pdf').forEach(btn => {
+  container.querySelectorAll('.btn-pdf-saved').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.dataset.id;
-      const target = invoices.find(i => i.id === id);
-      if (target) {
-        exportSingleInvoiceToPdf(target.data, target.invoiceNumber, target.buyerName);
+      const found = list.find(it => it.id === id);
+      if (found && found.data) {
+        exportSingleInvoiceToPdf(found.data, found.docNo, found.buyerName);
       }
     });
   });
 
-  listEl.querySelectorAll('.btn-del-saved-inv').forEach(btn => {
+  container.querySelectorAll('.btn-del-saved').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.dataset.id;
-      const updated = invoices.filter(i => i.id !== id);
-      localStorage.setItem('sk_saved_invoices', JSON.stringify(updated));
-      updateSavedInvoiceCount();
-      updateSavedInvoicesModal(query);
-      showToast('Invoice removed from database.', 'toast-info');
+      const updated = list.filter(it => it.id !== id);
+      saveInvoicesToDb(updated);
+      updateSavedInvoicesModal(searchQuery);
+      showToast('Bill removed from database', 'toast-info');
+    });
+  });
+}
+
+function updateBuyerDirectoryModal() {
+  const container = document.getElementById('buyer-directory-list');
+  if (!container) return;
+
+  const buyers = getSavedBuyers();
+  if (buyers.length === 0) {
+    container.innerHTML = `<div class="empty-state-card">No saved buyers. Click "Save Buyer" on the main screen to add.</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  buyers.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'saved-inv-card';
+    card.innerHTML = `
+      <div class="saved-inv-info">
+        <strong>${escapeHtml(b.name)}</strong>
+        <div class="saved-inv-meta">${escapeHtml(b.addr1 || '')} ${escapeHtml(b.addr2 || '')}</div>
+        <div class="saved-inv-meta">GSTIN: <strong>${escapeHtml(b.gstin || '')}</strong> • State: ${escapeHtml(b.state || '')} (${escapeHtml(b.stateCode || '')})</div>
+      </div>
+      <div class="saved-inv-actions">
+        <button type="button" class="btn btn-sm btn-primary btn-apply-buyer" data-id="${b.id}">Select</button>
+        <button type="button" class="btn btn-sm btn-ghost btn-del-buyer text-danger" data-id="${b.id}">Delete</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll('.btn-apply-buyer').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.dataset.id;
+      const found = buyers.find(it => it.id === id);
+      if (found) {
+        currentInvoice.buyer = JSON.parse(JSON.stringify(found));
+        populateEditorFields();
+        document.getElementById('modal-buyer-directory').close();
+        showToast(`Loaded ${found.name}`, 'toast-success');
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-del-buyer').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.dataset.id;
+      const updated = buyers.filter(it => it.id !== id);
+      saveBuyers(updated);
+      updateBuyerDirectoryModal();
+      showToast('Buyer removed', 'toast-info');
     });
   });
 }
 
 // =============================================================================
-// 8b. PDF & ZIP Export Functions (html2pdf + JSZip)
+// 10. PDF & ZIP Export Functions (html2pdf + JSZip)
 // =============================================================================
-
-async function exportSingleInvoiceToPdf(invoiceData, invoiceNum, buyerName) {
+async function exportSingleInvoiceToPdf(invoiceData, docNum, buyerName) {
   if (typeof html2pdf === 'undefined') {
     showToast('PDF engine is loading. Please try again.', 'toast-error');
     return;
   }
 
   const backupInvoice = JSON.parse(JSON.stringify(currentInvoice));
-  const sheet = document.getElementById('invoice-sheet');
+  currentInvoice = JSON.parse(JSON.stringify(invoiceData || currentInvoice));
+  renderInvoiceSheet();
+
+  const isChallan = currentInvoice.templateType === 'challan';
+  const sheet = isChallan ? document.getElementById('sheet-challan') : document.getElementById('sheet-invoice');
   const originalTransform = sheet.style.transform;
   sheet.style.transform = 'scale(1)';
 
-  showToast(`Generating PDF for Invoice #${invoiceNum}...`, 'toast-info');
+  showToast(`Generating PDF for #${docNum}...`, 'toast-info');
 
   try {
-    currentInvoice = JSON.parse(JSON.stringify(invoiceData || currentInvoice));
-    renderInvoiceSheet();
     await new Promise(resolve => setTimeout(resolve, 80));
 
     const safeBuyer = (buyerName || 'Buyer').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
-    const filename = `Invoice_${invoiceNum || '001'}_${safeBuyer}.pdf`;
+    const filename = `${isChallan ? 'JobWork_Challan' : 'Tax_Invoice'}_${docNum || '21'}_${safeBuyer}.pdf`;
 
     const opt = {
-      margin: [0, 0, 0, 0],
+      margin: [6, 6, 6, 6],
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        letterRendering: true,
-        scrollY: 0,
-        scrollX: 0
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      }
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, scrollX: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     await html2pdf().set(opt).from(sheet).save();
     showToast(`Downloaded ${filename}`, 'toast-success');
   } catch (err) {
-    console.error('Error generating single PDF:', err);
+    console.error('Error generating PDF:', err);
     showToast('Failed to generate PDF.', 'toast-error');
   } finally {
     currentInvoice = backupInvoice;
@@ -1018,25 +1152,22 @@ async function exportAllInvoicesToZip() {
   }
 
   let invoices = getSavedInvoices();
-
-  // If no saved invoices in history, export the currently open bill
   if (!invoices || invoices.length === 0) {
     const totals = calculateBillTotals();
+    const isChallan = currentInvoice.templateType === 'challan';
     invoices = [{
-      id: currentInvoice.invoiceNumber || '001',
-      invoiceNumber: currentInvoice.invoiceNumber || '001',
-      invoiceDate: currentInvoice.invoiceDate,
-      buyerName: currentInvoice.buyer.name || 'M/s SREE CORPORATION',
-      grandTotal: totals.grandTotal,
+      id: 'current-bill',
+      templateType: currentInvoice.templateType || 'challan',
+      docNo: isChallan ? (currentInvoice.challanNo || '21') : (currentInvoice.invoiceNumber || '001'),
+      docDate: isChallan ? currentInvoice.challanDate : currentInvoice.invoiceDate,
+      buyerName: currentInvoice.buyer.name || 'M/s EVERSHINE SALES',
+      grandTotal: totals.grandTotalSum,
       data: JSON.parse(JSON.stringify(currentInvoice))
     }];
   }
 
-  // Close the saved invoices modal if open so progress modal is clear
   const savedModal = document.getElementById('modal-saved-invoices');
-  if (savedModal && savedModal.open) {
-    savedModal.close();
-  }
+  if (savedModal && savedModal.open) savedModal.close();
 
   const progressModal = document.getElementById('modal-export-progress');
   const progressTitle = document.getElementById('export-progress-title');
@@ -1048,205 +1179,90 @@ async function exportAllInvoicesToZip() {
 
   progressFooter.style.display = 'none';
   spinnerWrapper.style.display = 'block';
+  progressTitle.textContent = 'Preparing Bills for Export...';
+  progressDetail.textContent = `Converting ${invoices.length} bill(s) into A4 PDF files...`;
   progressBar.style.width = '0%';
   progressPercent.textContent = '0%';
-  progressTitle.textContent = `Preparing ${invoices.length} Bill${invoices.length > 1 ? 's' : ''} for Export...`;
-  progressDetail.textContent = 'Initializing PDF conversion engine...';
   progressModal.showModal();
 
-  // Backup current UI state
   const backupInvoice = JSON.parse(JSON.stringify(currentInvoice));
-  const sheet = document.getElementById('invoice-sheet');
-  const originalTransform = sheet.style.transform;
-  sheet.style.transform = 'scale(1)';
-
   const zip = new JSZip();
-  const folder = zip.folder("SK_Enterprises_Tax_Invoices");
+  const folder = zip.folder("SK_Enterprises_Bills");
 
   try {
     for (let i = 0; i < invoices.length; i++) {
       const inv = invoices[i];
-      const invNum = inv.invoiceNumber || inv.id || String(i + 1);
-      const buyerName = (inv.buyerName || 'Buyer').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
-      const filename = `Invoice_${invNum}_${buyerName}.pdf`;
-
-      const pct = Math.round((i / invoices.length) * 90);
-      progressBar.style.width = `${pct}%`;
-      progressPercent.textContent = `${pct}%`;
-      progressTitle.textContent = `Converting Bill ${i + 1} of ${invoices.length}`;
-      progressDetail.textContent = `Generating PDF: Invoice #${invNum} (${inv.buyerName || 'Customer'})...`;
-
-      // Render this invoice into the live sheet
-      currentInvoice = JSON.parse(JSON.stringify(inv.data || inv));
+      const isChallan = (inv.templateType || inv.data?.templateType) === 'challan';
+      currentInvoice = JSON.parse(JSON.stringify(inv.data || currentInvoice));
       renderInvoiceSheet();
 
-      // Delay to ensure DOM repaint and clean layout
-      await new Promise(resolve => setTimeout(resolve, 80));
+      const sheet = isChallan ? document.getElementById('sheet-challan') : document.getElementById('sheet-invoice');
+      const originalTransform = sheet.style.transform;
+      sheet.style.transform = 'scale(1)';
+
+      const percent = Math.round(((i + 1) / invoices.length) * 100);
+      progressTitle.textContent = `Converting Bill ${i + 1} of ${invoices.length}...`;
+      progressDetail.textContent = `#${inv.docNo} - ${inv.buyerName}`;
+      progressBar.style.width = `${percent}%`;
+      progressPercent.textContent = `${percent}%`;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const safeBuyer = (inv.buyerName || 'Customer').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
+      const pdfFileName = `${isChallan ? 'Challan' : 'Invoice'}_${inv.docNo}_${safeBuyer}.pdf`;
 
       const opt = {
-        margin: [0, 0, 0, 0],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-          scrollY: 0,
-          scrollX: 0
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        }
+        margin: [6, 6, 6, 6],
+        filename: pdfFileName,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 1.8, useCORS: true, letterRendering: true, scrollY: 0, scrollX: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       const pdfBlob = await html2pdf().set(opt).from(sheet).outputPdf('blob');
-      folder.file(filename, pdfBlob);
+      folder.file(pdfFileName, pdfBlob);
+      sheet.style.transform = originalTransform;
     }
 
-    // Packing ZIP
-    progressBar.style.width = '95%';
-    progressPercent.textContent = '95%';
-    progressTitle.textContent = 'Compressing into ZIP archive...';
-    progressDetail.textContent = `Bundling ${invoices.length} PDF bills into ZIP file...`;
+    progressTitle.textContent = 'Compressing into ZIP...';
+    progressDetail.textContent = 'Finalizing packaging...';
 
-    const zipBlob = await zip.generateAsync({
-      type: 'blob',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 6 }
-    });
+    const zipContent = await zip.generateAsync({ type: "blob" });
+    const now = new Date().toISOString().slice(0, 10);
+    const zipName = `SK_Enterprises_Bills_${now}.zip`;
 
-    const zipFilename = `SK_Enterprises_Bills_PDFs_${Date.now()}.zip`;
-    const downloadUrl = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = zipFilename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(downloadUrl);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(zipContent);
+    downloadLink.download = zipName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(downloadLink.href);
 
-    // Completion status
+    progressTitle.textContent = '✓ Export Complete!';
+    progressDetail.textContent = `Downloaded ${invoices.length} bill(s) in ${zipName}`;
     progressBar.style.width = '100%';
     progressPercent.textContent = '100%';
-    progressTitle.textContent = 'ZIP Export Complete!';
-    progressDetail.textContent = `Successfully packaged and downloaded ${invoices.length} bill PDF${invoices.length > 1 ? 's' : ''} in ${zipFilename}.`;
     spinnerWrapper.style.display = 'none';
     progressFooter.style.display = 'flex';
 
-    showToast(`Exported ${invoices.length} bills as PDF in ZIP!`, 'toast-success');
+    showToast(`Successfully exported ${invoices.length} bills in ZIP!`, 'toast-success');
   } catch (err) {
-    console.error('Error exporting ZIP of PDFs:', err);
-    progressTitle.textContent = 'Export Failed';
-    progressDetail.textContent = `Error: ${err.message || 'Could not complete PDF export.'}`;
+    console.error('ZIP Export error:', err);
+    progressTitle.textContent = 'Export Encountered an Error';
+    progressDetail.textContent = err.message || 'Error converting bills to PDF.';
     spinnerWrapper.style.display = 'none';
     progressFooter.style.display = 'flex';
-    showToast('Failed to export ZIP file.', 'toast-error');
+    showToast('Failed to export ZIP.', 'toast-error');
   } finally {
-    // Restore UI state
     currentInvoice = backupInvoice;
     populateEditorFields();
     renderInvoiceSheet();
-    sheet.style.transform = originalTransform;
   }
 }
 
 // =============================================================================
-// 9. Signature Pad (HTML5 Canvas)
-// =============================================================================
-// Ensure material entries helper
-function ensureMaterialEntries(mat) {
-  if (!mat) return;
-  if (!Array.isArray(mat.receivedEntries) || mat.receivedEntries.length === 0) {
-    const qty = parseFloat(mat.received) || 0;
-    mat.receivedEntries = [
-      {
-        id: 'rec-' + Date.now(),
-        date: mat.date || '2022-07-02',
-        qty: qty,
-        note: ''
-      }
-    ];
-  }
-}
-
-// Render dynamic Zinc Raw Material Received Cards in Editor
-function renderMaterialReceivedEditor() {
-  ensureMaterialEntries(currentInvoice.material);
-  const container = document.getElementById('mat-received-entries-container');
-  if (!container) return;
-
-  container.innerHTML = '';
-  const entries = currentInvoice.material.receivedEntries;
-
-  const countBadge = document.getElementById('mat-rec-count-badge');
-  if (countBadge) {
-    countBadge.textContent = `${entries.length} ${entries.length === 1 ? 'Entry' : 'Entries'}`;
-  }
-
-  entries.forEach((entry, idx) => {
-    const card = document.createElement('div');
-    card.className = 'mat-rec-card';
-    card.dataset.id = entry.id;
-    card.innerHTML = `
-      <div class="mat-rec-header">
-        <span class="mat-rec-num">Entry #${idx + 1}</span>
-        ${entries.length > 1 ? `<button type="button" class="btn-del-mat-entry" data-id="${entry.id}" title="Remove this entry">✕ Remove</button>` : ''}
-      </div>
-      <div class="form-row">
-        <div class="form-group flex-1">
-          <label>Receipt Date *</label>
-          <input type="date" class="form-control mat-entry-date" value="${entry.date || ''}">
-        </div>
-        <div class="form-group flex-1">
-          <label>Received Qty (Kg.) *</label>
-          <input type="number" step="0.001" class="form-control mat-entry-qty font-bold" value="${entry.qty !== undefined ? entry.qty : ''}" placeholder="0.000">
-        </div>
-      </div>
-      <div class="form-group mt-1">
-        <label>Challan / Slip No. / Remarks (Optional)</label>
-        <input type="text" class="form-control mat-entry-note" value="${entry.note || ''}" placeholder="e.g. Challan #104 or Lot 1">
-      </div>
-    `;
-    container.appendChild(card);
-  });
-
-  // Attach input listeners
-  container.querySelectorAll('.mat-entry-date').forEach((input, idx) => {
-    input.addEventListener('change', (e) => {
-      currentInvoice.material.receivedEntries[idx].date = e.target.value;
-      renderInvoiceSheet();
-    });
-  });
-
-  container.querySelectorAll('.mat-entry-qty').forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
-      currentInvoice.material.receivedEntries[idx].qty = parseFloat(e.target.value) || 0;
-      renderInvoiceSheet();
-    });
-  });
-
-  container.querySelectorAll('.mat-entry-note').forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
-      currentInvoice.material.receivedEntries[idx].note = e.target.value;
-      renderInvoiceSheet();
-    });
-  });
-
-  container.querySelectorAll('.btn-del-mat-entry').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.target.dataset.id;
-      currentInvoice.material.receivedEntries = currentInvoice.material.receivedEntries.filter(item => item.id !== id);
-      renderMaterialReceivedEditor();
-      renderInvoiceSheet();
-      showToast('Received entry removed', 'toast-info');
-    });
-  });
-}
-
-// =============================================================================
-// 9. Signature Pad (HTML5 Canvas with Pointer Events & Multi-Mode)
+// 11. Signature Canvas & Pad Engine
 // =============================================================================
 let signatureCtx = null;
 let signatureCanvas = null;
@@ -1260,10 +1276,9 @@ function initSignaturePad() {
   signatureCtx = ctx;
 
   let isDrawing = false;
-  let currentColor = '#1d4ed8'; // Navy Blue default ink
+  let currentColor = '#1d4ed8';
   let currentLineWidth = 3.5;
 
-  // Fixed high-resolution canvas space
   canvas.width = 600;
   canvas.height = 200;
 
@@ -1323,7 +1338,6 @@ function initSignaturePad() {
     renderInvoiceSheet();
   }
 
-  // Pointer events (modern web standard for mouse, touch & stylus)
   canvas.addEventListener('pointerdown', (e) => {
     try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     startDraw(e);
@@ -1348,168 +1362,96 @@ function initSignaturePad() {
     });
   });
 
-  // Clear signature button
-  const btnClear = document.getElementById('btn-clear-sig');
-  if (btnClear) {
-    btnClear.addEventListener('click', () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      currentInvoice.signature.dataUrl = '';
-      currentInvoice.signature.show = false;
-      const toggleSig = document.getElementById('toggle-signature');
-      if (toggleSig) toggleSig.checked = false;
-      const hint = document.getElementById('signature-hint');
-      if (hint) hint.style.display = 'block';
-      const status = document.getElementById('sig-status-badge');
-      if (status) status.textContent = 'Canvas cleared';
-      renderInvoiceSheet();
-    });
-  }
+  // Clear canvas
+  document.getElementById('btn-clear-sig')?.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const hint = document.getElementById('signature-hint');
+    if (hint) hint.style.display = 'block';
+    const status = document.getElementById('sig-status-badge');
+    if (status) status.textContent = 'Canvas cleared';
+  });
 
-  // Signature file upload
-  const fileInput = document.getElementById('input-sig-file');
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new Image();
-          img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.85;
-            const nw = img.width * scale;
-            const nh = img.height * scale;
-            const nx = (canvas.width - nw) / 2;
-            const ny = (canvas.height - nh) / 2;
-            ctx.drawImage(img, nx, ny, nw, nh);
-            currentInvoice.signature.dataUrl = event.target.result;
-            currentInvoice.signature.show = true;
-            const toggleSig = document.getElementById('toggle-signature');
-            if (toggleSig) toggleSig.checked = true;
-            const hint = document.getElementById('signature-hint');
-            if (hint) hint.style.display = 'none';
-            const status = document.getElementById('sig-status-badge');
-            if (status) status.textContent = '✓ Image loaded';
-            renderInvoiceSheet();
-            showToast('Signature image uploaded and applied!', 'toast-success');
-          };
-          img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  // Signature mode tabs (Draw / Type / Upload)
+  // Mode tabs: Draw, Type, Upload, Preset
   document.querySelectorAll('.btn-sig-mode').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const mode = e.currentTarget.dataset.sigMode;
+      const mode = e.target.dataset.sigMode;
       if (!mode) return;
+
       document.querySelectorAll('.btn-sig-mode').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
+      e.target.classList.add('active');
 
-      document.querySelectorAll('.sig-panel').forEach(p => p.style.display = 'none');
-      const targetPanel = document.getElementById(`sig-mode-${mode}-panel`);
-      if (targetPanel) targetPanel.style.display = 'block';
-
-      if (mode === 'draw') {
-        refreshSignatureCanvas();
-      }
+      document.getElementById('sig-mode-draw-panel').style.display = mode === 'draw' ? 'block' : 'none';
+      document.getElementById('sig-mode-type-panel').style.display = mode === 'type' ? 'block' : 'none';
+      document.getElementById('sig-mode-upload-panel').style.display = mode === 'upload' ? 'block' : 'none';
     });
   });
 
-  // Typed Signature Apply
-  const btnApplyType = document.getElementById('btn-apply-typed-sign');
-  const inputType = document.getElementById('input-type-sign');
-  const typePreview = document.getElementById('type-sign-preview-text');
-
-  if (inputType && typePreview) {
-    inputType.addEventListener('input', (e) => {
-      typePreview.textContent = e.target.value || 'S. K. Enterprises';
+  // Type name generator
+  const typedInput = document.getElementById('typed-sig-input');
+  const typedDisplay = document.getElementById('typed-signature-display');
+  if (typedInput && typedDisplay) {
+    typedInput.addEventListener('input', (e) => {
+      const val = e.target.value || 'S. K. Enterprises';
+      typedDisplay.textContent = val;
+      generateTypedSignatureDataUrl(val);
     });
   }
 
-  if (btnApplyType && inputType) {
-    btnApplyType.addEventListener('click', () => {
-      const name = (inputType.value || 'S. K. Enterprises').trim();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = 'italic 700 52px "Caveat", "Dancing Script", cursive, sans-serif';
-      ctx.fillStyle = currentColor || '#1d4ed8';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(name, canvas.width / 2, canvas.height / 2 - 6);
+  // S.K. Preset button
+  document.getElementById('btn-sig-preset')?.addEventListener('click', () => {
+    currentInvoice.signature.dataUrl = DEFAULT_PARTNER_SIGNATURE_DATAURL;
+    currentInvoice.signature.show = true;
+    document.getElementById('toggle-signature').checked = true;
+    renderInvoiceSheet();
+    showToast('Applied S.K. Enterprises Partner signature preset', 'toast-success');
+  });
 
-      // Add calligraphic underline flourish
-      ctx.beginPath();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = currentColor || '#1d4ed8';
-      const textWidth = ctx.measureText(name).width;
-      const startX = Math.max(20, (canvas.width - textWidth) / 2 - 10);
-      const endX = Math.min(canvas.width - 20, (canvas.width + textWidth) / 2 + 25);
-      const startY = canvas.height / 2 + 26;
-      ctx.moveTo(startX, startY);
-      ctx.quadraticCurveTo(canvas.width / 2, startY + 12, endX, startY - 4);
-      ctx.stroke();
-
-      currentInvoice.signature.dataUrl = canvas.toDataURL('image/png');
-      currentInvoice.signature.show = true;
-      const toggleSig = document.getElementById('toggle-signature');
-      if (toggleSig) toggleSig.checked = true;
-      const hint = document.getElementById('signature-hint');
-      if (hint) hint.style.display = 'none';
-      const status = document.getElementById('sig-status-badge');
-      if (status) status.textContent = '✓ Typed signature applied';
-      renderInvoiceSheet();
-      showToast('Typed digital signature applied!', 'toast-success');
+  // File upload
+  const fileInput = document.getElementById('input-sign-file');
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        currentInvoice.signature.dataUrl = evt.target.result;
+        currentInvoice.signature.show = true;
+        document.getElementById('toggle-signature').checked = true;
+        renderInvoiceSheet();
+        showToast('Uploaded custom signature image', 'toast-success');
+      };
+      reader.readAsDataURL(file);
     });
   }
-
-  // S.K. Enterprises Preset Partner Signature button
-  const btnPreset = document.getElementById('btn-sig-preset');
-  if (btnPreset) {
-    btnPreset.addEventListener('click', () => {
-      currentInvoice.signature.dataUrl = DEFAULT_PARTNER_SIGNATURE_DATAURL;
-      currentInvoice.signature.show = true;
-      const toggleSig = document.getElementById('toggle-signature');
-      if (toggleSig) toggleSig.checked = true;
-      refreshSignatureCanvas();
-      renderInvoiceSheet();
-      showToast('Official S K Enterprises Partner signature loaded!', 'toast-success');
-    });
-  }
-
-  // Initial draw if preset is present
-  refreshSignatureCanvas();
 }
 
-function refreshSignatureCanvas() {
-  if (!signatureCanvas || !signatureCtx) return;
-  const hint = document.getElementById('signature-hint');
-  const status = document.getElementById('sig-status-badge');
+function generateTypedSignatureDataUrl(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 400;
+  canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "bold 44px 'Caveat', 'Dancing Script', cursive, sans-serif";
+  ctx.fillStyle = "#1d4ed8";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 20, 60);
 
-  if (currentInvoice.signature && currentInvoice.signature.dataUrl) {
-    const img = new Image();
-    img.onload = () => {
-      signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-      const scale = Math.min(signatureCanvas.width / img.width, signatureCanvas.height / img.height) * 0.9;
-      const nw = img.width * scale;
-      const nh = img.height * scale;
-      const nx = (signatureCanvas.width - nw) / 2;
-      const ny = (signatureCanvas.height - nh) / 2;
-      signatureCtx.drawImage(img, nx, ny, nw, nh);
-      if (hint) hint.style.display = 'none';
-      if (status) status.textContent = '✓ Active signature loaded';
-    };
-    img.src = currentInvoice.signature.dataUrl;
-  } else {
-    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-    if (hint) hint.style.display = 'block';
-    if (status) status.textContent = 'Ready to draw';
-  }
+  // Underline stroke
+  ctx.strokeStyle = "#1d4ed8";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(18, 90);
+  ctx.quadraticCurveTo(200, 84, 380, 88);
+  ctx.stroke();
+
+  currentInvoice.signature.dataUrl = canvas.toDataURL('image/png');
+  currentInvoice.signature.show = true;
+  document.getElementById('toggle-signature').checked = true;
+  renderInvoiceSheet();
 }
 
 // =============================================================================
-// 10. Toast Notification System
+// 12. Toast Notification Helper
 // =============================================================================
 function showToast(message, type = 'toast-info') {
   const container = document.getElementById('toast-container');
@@ -1517,513 +1459,487 @@ function showToast(message, type = 'toast-info') {
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.textContent = message;
-
+  toast.innerHTML = `<span>${message}</span>`;
   container.appendChild(toast);
+
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(10px)';
-    toast.style.transition = 'all 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 2800);
+    toast.style.transition = 'all 0.25s ease';
+    setTimeout(() => toast.remove(), 250);
+  }, 3200);
 }
 
 // =============================================================================
-// 11. Event Listeners Setup
+// 13. Application Initialization & Event Wiring
 // =============================================================================
-function setupEventListeners() {
-  // Sidebar Tabs
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      const targetTab = e.currentTarget.dataset.tab;
-      e.currentTarget.classList.add('active');
-      const targetEl = document.getElementById(targetTab);
-      if (targetEl) targetEl.classList.add('active');
+document.addEventListener('DOMContentLoaded', () => {
 
-      // Refresh signature canvas if switching to signature tab
-      if (targetTab === 'tab-sign') {
-        refreshSignatureCanvas();
-      }
-    });
-  });
-
-  // Buyer Presets Select
-  document.getElementById('select-saved-buyer').addEventListener('change', (e) => {
-    if (e.target.value) {
-      loadBuyerIntoForm(e.target.value);
-    }
-  });
-
-  // Save current buyer button
-  document.getElementById('btn-save-current-buyer').addEventListener('click', () => {
-    saveCurrentBuyerToDirectory();
-  });
-
-  // Reset to sample buyer (Sree Corporation)
-  document.getElementById('btn-sample-buyer').addEventListener('click', () => {
-    currentInvoice.buyer = JSON.parse(JSON.stringify(ORIGINAL_BILL_DATA.buyer));
+  // 1. Template Switcher: JobWork Challan (Default) vs Commercial Tax Invoice
+  document.getElementById('btn-tmpl-challan')?.addEventListener('click', () => {
+    currentInvoice.templateType = 'challan';
     populateEditorFields();
-    renderInvoiceSheet();
-    showToast('Reset to M/s Sree Corporation', 'toast-info');
+    showToast('Switched to JobWork Challan format (Image Match)', 'toast-success');
   });
 
-  // Clear buyer fields
-  document.getElementById('btn-clear-buyer').addEventListener('click', () => {
-    currentInvoice.buyer = {
-      name: '',
-      addr1: '',
-      addr2: '',
-      cityPin: '',
-      gstin: '',
-      state: 'UTTAR PRADESH',
-      stateCode: '09'
+  document.getElementById('btn-tmpl-invoice')?.addEventListener('click', () => {
+    currentInvoice.templateType = 'invoice';
+    populateEditorFields();
+    showToast('Switched to Commercial GST Tax Invoice format', 'toast-info');
+  });
+
+  // 2. Load Original Bill (From Image)
+  document.getElementById('btn-load-sample')?.addEventListener('click', () => {
+    currentInvoice = JSON.parse(JSON.stringify(IMAGE_SAMPLE_CHALLAN));
+    populateEditorFields();
+    showToast('Loaded authentic JobWork Challan from photograph!', 'toast-success');
+  });
+
+  // 3. New Bill (+1 auto-increment)
+  document.getElementById('btn-new-bill')?.addEventListener('click', () => {
+    const isChallan = currentInvoice.templateType === 'challan';
+    const currentNum = parseInt(isChallan ? currentInvoice.challanNo : currentInvoice.invoiceNumber) || 21;
+    const nextNum = (currentNum + 1).toString();
+
+    if (isChallan) {
+      currentInvoice.challanNo = nextNum;
+    } else {
+      currentInvoice.invoiceNumber = nextNum;
+    }
+
+    currentInvoice.challanDate = '2026-09-30';
+    currentInvoice.invoiceDate = '2026-09-30';
+    currentInvoice.items = [
+      {
+        id: 'item-' + Date.now(),
+        particulars: 'ISSUED JOBWORK',
+        qty: 405.350,
+        unit: 'KGS',
+        rate: 70.00,
+        taxType: 'intra',
+        amount: 28374.500,
+        cgst: 2553.710,
+        sgst: 2553.710,
+        totalAmount: 33482.000
+      }
+    ];
+
+    populateEditorFields();
+    showToast(`Created New Bill #${nextNum}. Seller remains fixed.`, 'toast-success');
+  });
+
+  // 4. Save Bill to Local Storage
+  document.getElementById('btn-save-bill')?.addEventListener('click', () => {
+    saveCurrentBillToDb();
+  });
+
+  // 5. History Modal
+  document.getElementById('btn-history')?.addEventListener('click', () => {
+    updateSavedInvoicesModal();
+    document.getElementById('modal-saved-invoices').showModal();
+  });
+  document.getElementById('btn-close-saved-modal')?.addEventListener('click', () => {
+    document.getElementById('modal-saved-invoices').close();
+  });
+  document.getElementById('btn-close-saved-modal-2')?.addEventListener('click', () => {
+    document.getElementById('modal-saved-invoices').close();
+  });
+  document.getElementById('input-search-saved')?.addEventListener('input', (e) => {
+    updateSavedInvoicesModal(e.target.value);
+  });
+
+  // 6. Buyer Directory Modal
+  document.getElementById('btn-buyer-directory')?.addEventListener('click', () => {
+    updateBuyerDirectoryModal();
+    document.getElementById('modal-buyer-directory').showModal();
+  });
+  document.getElementById('btn-close-buyer-modal')?.addEventListener('click', () => {
+    document.getElementById('modal-buyer-directory').close();
+  });
+  document.getElementById('btn-close-buyer-modal-2')?.addEventListener('click', () => {
+    document.getElementById('modal-buyer-directory').close();
+  });
+
+  // 7. Save Current Buyer
+  document.getElementById('btn-save-current-buyer')?.addEventListener('click', () => {
+    const name = document.getElementById('buyer-name').value.trim();
+    if (!name) {
+      showToast('Please enter a buyer name to save.', 'toast-error');
+      return;
+    }
+    const buyers = getSavedBuyers();
+    const newBuyer = {
+      id: 'buyer-' + Date.now(),
+      name: name,
+      addr1: document.getElementById('buyer-addr1').value.trim(),
+      addr2: document.getElementById('buyer-addr2').value.trim(),
+      cityPin: document.getElementById('buyer-city-pin')?.value.trim() || 'ALIGARH - 202001',
+      gstin: document.getElementById('buyer-gstin').value.trim(),
+      state: document.getElementById('buyer-state').value.trim() || 'U.P',
+      stateCode: document.getElementById('buyer-state-code').value.trim() || '09'
     };
-    populateEditorFields();
-    renderInvoiceSheet();
-    showToast('Buyer fields cleared for new customer.', 'toast-info');
+    buyers.unshift(newBuyer);
+    saveBuyers(buyers);
+    showToast(`Saved ${name} to buyer directory!`, 'toast-success');
   });
 
-  // Buyer Input Listeners
-  document.getElementById('buyer-name').addEventListener('input', (e) => {
-    currentInvoice.buyer.name = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-addr1').addEventListener('input', (e) => {
-    currentInvoice.buyer.addr1 = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-addr2').addEventListener('input', (e) => {
-    currentInvoice.buyer.addr2 = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-city-pin').addEventListener('input', (e) => {
-    currentInvoice.buyer.cityPin = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-gstin').addEventListener('input', (e) => {
-    const val = e.target.value.toUpperCase();
-    currentInvoice.buyer.gstin = val;
-
-    // Auto extract 2-digit state code from GSTIN
-    if (val.length >= 2 && /^\d{2}/.test(val)) {
-      const code = val.substring(0, 2);
-      currentInvoice.buyer.stateCode = code;
-      document.getElementById('buyer-state-code').value = code;
-      if (code === '09') {
-        currentInvoice.buyer.state = 'UTTAR PRADESH';
-        document.getElementById('buyer-state').value = 'UTTAR PRADESH';
-      }
+  // 8. Quick Select Buyer Dropdown
+  document.getElementById('select-saved-buyer')?.addEventListener('change', (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    const buyers = getSavedBuyers();
+    const found = buyers.find(b => b.id === id || b.name === id);
+    if (found) {
+      currentInvoice.buyer = JSON.parse(JSON.stringify(found));
+      populateEditorFields();
+      showToast(`Selected buyer: ${found.name}`, 'toast-info');
     }
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-state-code').addEventListener('input', (e) => {
-    currentInvoice.buyer.stateCode = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('buyer-state').addEventListener('input', (e) => {
-    currentInvoice.buyer.state = e.target.value;
-    renderInvoiceSheet();
   });
 
-  // Invoice Meta Listeners
-  document.getElementById('inv-number').addEventListener('input', (e) => {
-    currentInvoice.invoiceNumber = e.target.value;
-    renderInvoiceSheet();
+  // 9. Clear & Reset Buyer Buttons
+  document.getElementById('btn-clear-buyer')?.addEventListener('click', () => {
+    currentInvoice.buyer = { name: '', addr1: '', addr2: '', cityPin: '', gstin: '', state: '', stateCode: '' };
+    populateEditorFields();
   });
-  document.getElementById('inv-date').addEventListener('change', (e) => {
-    currentInvoice.invoiceDate = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('inv-copy-type').addEventListener('change', (e) => {
-    currentInvoice.copyType = e.target.value;
-    renderInvoiceSheet();
+  document.getElementById('btn-sample-buyer')?.addEventListener('click', () => {
+    currentInvoice.buyer = JSON.parse(JSON.stringify(IMAGE_SAMPLE_CHALLAN.buyer));
+    populateEditorFields();
+    showToast('Reset buyer to Evershine Sales', 'toast-info');
   });
 
-  // Consignment Details Listeners
-  document.getElementById('cons-transport').addEventListener('input', (e) => {
-    currentInvoice.consignment.transport = e.target.value;
-    renderInvoiceSheet();
+  // 10. Direct PDF Downloads & Prints
+  document.getElementById('btn-print')?.addEventListener('click', () => window.print());
+  document.getElementById('btn-quick-print')?.addEventListener('click', () => window.print());
+
+  document.getElementById('btn-download-pdf-top')?.addEventListener('click', () => {
+    const docNo = currentInvoice.templateType === 'challan' ? currentInvoice.challanNo : currentInvoice.invoiceNumber;
+    exportSingleInvoiceToPdf(currentInvoice, docNo, currentInvoice.buyer.name);
   });
-  document.getElementById('cons-lr-no').addEventListener('input', (e) => {
-    currentInvoice.consignment.lrNo = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-veh-no').addEventListener('input', (e) => {
-    currentInvoice.consignment.vehNo = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-ewb-no').addEventListener('input', (e) => {
-    currentInvoice.consignment.ewbNo = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-place-supply').addEventListener('input', (e) => {
-    currentInvoice.consignment.placeOfSupply = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-no-cases').addEventListener('input', (e) => {
-    currentInvoice.consignment.noOfCases = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-reverse-charge').addEventListener('change', (e) => {
-    currentInvoice.consignment.reverseCharge = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-weight').addEventListener('input', (e) => {
-    currentInvoice.consignment.weight = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-  document.getElementById('cons-freight').addEventListener('input', (e) => {
-    currentInvoice.consignment.freight = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
+  document.getElementById('btn-download-pdf-preview')?.addEventListener('click', () => {
+    const docNo = currentInvoice.templateType === 'challan' ? currentInvoice.challanNo : currentInvoice.invoiceNumber;
+    exportSingleInvoiceToPdf(currentInvoice, docNo, currentInvoice.buyer.name);
   });
 
-  // Line Item Presets & Addition
-  document.getElementById('btn-add-item').addEventListener('click', () => {
+  // 11. Bulk Export ZIP (PDFs)
+  document.getElementById('btn-export-zip-top')?.addEventListener('click', exportAllInvoicesToZip);
+  document.getElementById('btn-export-all-zip-pdf')?.addEventListener('click', exportAllInvoicesToZip);
+  document.getElementById('btn-close-progress-modal')?.addEventListener('click', () => {
+    document.getElementById('modal-export-progress').close();
+  });
+
+  // 12. Add Product Row Button
+  document.getElementById('btn-add-item')?.addEventListener('click', () => {
     currentInvoice.items.push({
       id: 'item-' + Date.now(),
-      particulars: 'ZINC DIE CASTING CHARGES',
-      hsn: '9988',
-      qty: 100,
-      rate: 40
+      particulars: 'ZINC JOB WORK CHARGES',
+      qty: 405.350,
+      unit: 'KGS',
+      rate: 70.00,
+      taxType: 'intra',
+      amount: 28374.500,
+      cgst: 2553.710,
+      sgst: 2553.710,
+      totalAmount: 33482.000
     });
     renderItemEditorCards();
     renderInvoiceSheet();
-    showToast('New line item added', 'toast-info');
+    showToast('Added product row', 'toast-success');
   });
 
-  document.querySelectorAll('.btn-chip').forEach(chip => {
-    chip.addEventListener('click', (e) => {
-      const name = e.target.dataset.name;
-      const hsn = e.target.dataset.hsn;
-      const rate = parseFloat(e.target.dataset.rate) || 40;
-      currentInvoice.items.push({
-        id: 'item-' + Date.now(),
-        particulars: name,
-        hsn: hsn,
-        qty: 100,
-        rate: rate
-      });
-      renderItemEditorCards();
-      renderInvoiceSheet();
-      showToast(`Added: ${name}`, 'toast-success');
+  // 13. Presets Chips
+  document.getElementById('chip-zinc-scrap')?.addEventListener('click', () => {
+    currentInvoice.items.push({
+      id: 'item-' + Date.now(),
+      particulars: 'Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003',
+      qty: 405.350,
+      unit: 'Kgs',
+      rate: 305.00,
+      taxType: 'none',
+      amount: 123631.750,
+      cgst: 0,
+      sgst: 0,
+      totalAmount: 123632.000
     });
+    renderItemEditorCards();
+    renderInvoiceSheet();
+    showToast('Added Zinc Scrap Received preset (Nil Tax)', 'toast-success');
   });
 
-  // Tax Setup & Round off Listeners
-  document.getElementById('tax-mode').addEventListener('change', (e) => {
-    currentInvoice.taxMode = e.target.value;
+  document.getElementById('chip-issued-jobwork')?.addEventListener('click', () => {
+    currentInvoice.items.push({
+      id: 'item-' + Date.now(),
+      particulars: 'ISSUED JOBWORK',
+      qty: 405.350,
+      unit: 'KGS',
+      rate: 70.00,
+      taxType: 'intra',
+      amount: 28374.500,
+      cgst: 2553.710,
+      sgst: 2553.710,
+      totalAmount: 33482.000
+    });
+    renderItemEditorCards();
+    renderInvoiceSheet();
+    showToast('Added Issued Jobwork preset (18% GST)', 'toast-success');
+  });
+
+  document.getElementById('chip-die-casting')?.addEventListener('click', () => {
+    currentInvoice.items.push({
+      id: 'item-' + Date.now(),
+      particulars: 'ZINC DIE CASTING CHARGES',
+      qty: 405.350,
+      unit: 'Kgs',
+      rate: 45.00,
+      taxType: 'intra',
+      amount: 18240.750,
+      cgst: 1641.670,
+      sgst: 1641.670,
+      totalAmount: 21524.000
+    });
+    renderItemEditorCards();
     renderInvoiceSheet();
   });
-  document.getElementById('auto-detect-tax').addEventListener('change', (e) => {
-    currentInvoice.autoDetectTax = e.target.checked;
+
+  document.getElementById('chip-buffing')?.addEventListener('click', () => {
+    currentInvoice.items.push({
+      id: 'item-' + Date.now(),
+      particulars: 'FINISHING & BUFFING CHARGES',
+      qty: 405.350,
+      unit: 'Kgs',
+      rate: 15.00,
+      taxType: 'intra',
+      amount: 6080.250,
+      cgst: 547.220,
+      sgst: 547.220,
+      totalAmount: 7175.000
+    });
+    renderItemEditorCards();
     renderInvoiceSheet();
   });
-  document.getElementById('toggle-roundoff').addEventListener('change', (e) => {
+
+  document.getElementById('chip-returned')?.addEventListener('click', () => {
+    currentInvoice.items.push({
+      id: 'item-' + Date.now(),
+      particulars: 'ZINC SCRAP RETURNED AFTER JOBWORK',
+      qty: 405.350,
+      unit: 'Kgs',
+      rate: 0.00,
+      taxType: 'none',
+      amount: 0.000,
+      cgst: 0,
+      sgst: 0,
+      totalAmount: 0.000
+    });
+    renderItemEditorCards();
+    renderInvoiceSheet();
+  });
+
+  // 14. Inputs Sync to State
+  document.getElementById('inv-number')?.addEventListener('input', (e) => {
+    if (currentInvoice.templateType === 'challan') {
+      currentInvoice.challanNo = e.target.value;
+    } else {
+      currentInvoice.invoiceNumber = e.target.value;
+    }
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('btn-next-inv-no')?.addEventListener('click', () => {
+    const isChallan = currentInvoice.templateType === 'challan';
+    const num = parseInt(isChallan ? currentInvoice.challanNo : currentInvoice.invoiceNumber) || 21;
+    const nextVal = (num + 1).toString();
+    if (isChallan) {
+      currentInvoice.challanNo = nextVal;
+    } else {
+      currentInvoice.invoiceNumber = nextVal;
+    }
+    document.getElementById('inv-number').value = nextVal;
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('inv-date')?.addEventListener('change', (e) => {
+    currentInvoice.challanDate = e.target.value;
+    currentInvoice.invoiceDate = e.target.value;
+    document.getElementById('date-display-hint').innerHTML = `Displays as: <strong>${formatDateDDMMYYYYDot(e.target.value)}</strong>`;
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('challan-notes-input')?.addEventListener('input', (e) => {
+    currentInvoice.notes = e.target.value;
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('buyer-name')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.name = e.target.value;
+    renderInvoiceSheet();
+  });
+  document.getElementById('buyer-addr1')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.addr1 = e.target.value;
+    renderInvoiceSheet();
+  });
+  document.getElementById('buyer-addr2')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.addr2 = e.target.value;
+    renderInvoiceSheet();
+  });
+  document.getElementById('buyer-gstin')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.gstin = e.target.value.toUpperCase();
+    renderInvoiceSheet();
+  });
+  document.getElementById('buyer-state')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.state = e.target.value;
+    renderInvoiceSheet();
+  });
+  document.getElementById('buyer-state-code')?.addEventListener('input', (e) => {
+    currentInvoice.buyer.stateCode = e.target.value;
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('setting-min-rows')?.addEventListener('input', (e) => {
+    currentInvoice.minRows = parseInt(e.target.value) || 4;
+    renderInvoiceSheet();
+  });
+
+  document.getElementById('toggle-roundoff')?.addEventListener('change', (e) => {
     currentInvoice.autoRoundoff = e.target.checked;
-    document.getElementById('custom-roundoff').disabled = e.target.checked;
     renderInvoiceSheet();
   });
-  document.getElementById('custom-roundoff').addEventListener('input', (e) => {
-    currentInvoice.customRoundoff = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-  document.getElementById('words-override-input').addEventListener('input', (e) => {
+
+  document.getElementById('words-override-input')?.addEventListener('input', (e) => {
     currentInvoice.wordsOverride = e.target.value;
     renderInvoiceSheet();
   });
 
-  // Material Ledger Listeners
-  document.getElementById('toggle-material-table').addEventListener('change', (e) => {
-    currentInvoice.material.show = e.target.checked;
-    renderInvoiceSheet();
-  });
-  document.getElementById('mat-date').addEventListener('change', (e) => {
-    currentInvoice.material.date = e.target.value;
-    renderInvoiceSheet();
-  });
-  document.getElementById('mat-opening').addEventListener('input', (e) => {
-    currentInvoice.material.opening = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-
-  // Add Zinc Raw Material Received Entry Button Listener
-  const btnAddMatRec = document.getElementById('btn-add-mat-received');
-  if (btnAddMatRec) {
-    btnAddMatRec.addEventListener('click', () => {
-      ensureMaterialEntries(currentInvoice.material);
-      const defaultDate = currentInvoice.invoiceDate || new Date().toISOString().split('T')[0];
-      currentInvoice.material.receivedEntries.push({
-        id: 'rec-' + Date.now(),
-        date: defaultDate,
-        qty: 0.000,
-        note: ''
-      });
-      renderMaterialReceivedEditor();
-      renderInvoiceSheet();
-      showToast('Added Zinc Raw Material Received entry', 'toast-success');
-    });
-  }
-  document.getElementById('mat-delivered').addEventListener('input', (e) => {
-    currentInvoice.material.delivered = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-  document.getElementById('mat-loss').addEventListener('input', (e) => {
-    currentInvoice.material.loss = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-  document.getElementById('mat-returned').addEventListener('input', (e) => {
-    currentInvoice.material.returned = parseFloat(e.target.value) || 0;
-    renderInvoiceSheet();
-  });
-
-  // Sync Qty button in Material Ledger
-  document.getElementById('btn-sync-qty').addEventListener('click', () => {
-    const totalItemQty = currentInvoice.items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-    currentInvoice.material.delivered = totalItemQty;
-    document.getElementById('mat-delivered').value = totalItemQty;
-    renderInvoiceSheet();
-    showToast(`Synced delivered casting: ${totalItemQty} Kg`, 'toast-info');
-  });
-
-  // Calculate 5% burning loss button
-  document.getElementById('btn-calc-5percent-loss').addEventListener('click', () => {
-    const delivered = parseFloat(currentInvoice.material.delivered) || 0;
-    const loss5 = Number((delivered * 0.05).toFixed(3));
-    currentInvoice.material.loss = loss5;
-    document.getElementById('mat-loss').value = loss5;
-    renderInvoiceSheet();
-    showToast(`Calculated 5% melting loss: ${loss5} Kg`, 'toast-info');
-  });
-
-  // Stamp & Sign Listeners
-  document.getElementById('toggle-stamp').addEventListener('change', (e) => {
+  // Stamp & Sign controls
+  document.getElementById('toggle-stamp')?.addEventListener('change', (e) => {
+    if (!currentInvoice.stamp) currentInvoice.stamp = {};
     currentInvoice.stamp.show = e.target.checked;
     renderInvoiceSheet();
   });
-  document.getElementById('stamp-color').addEventListener('change', (e) => {
+
+  document.getElementById('stamp-color')?.addEventListener('change', (e) => {
+    if (!currentInvoice.stamp) currentInvoice.stamp = {};
     currentInvoice.stamp.color = e.target.value;
     renderInvoiceSheet();
   });
-  document.getElementById('stamp-rotation').addEventListener('input', (e) => {
-    currentInvoice.stamp.rotation = parseInt(e.target.value, 10);
+
+  document.getElementById('stamp-rotation')?.addEventListener('input', (e) => {
+    if (!currentInvoice.stamp) currentInvoice.stamp = {};
+    currentInvoice.stamp.rotation = parseInt(e.target.value) || 0;
     renderInvoiceSheet();
   });
-  document.getElementById('toggle-signature').addEventListener('change', (e) => {
+
+  document.getElementById('toggle-signature')?.addEventListener('change', (e) => {
+    if (!currentInvoice.signature) currentInvoice.signature = {};
     currentInvoice.signature.show = e.target.checked;
     renderInvoiceSheet();
   });
-  document.getElementById('signatory-label').addEventListener('input', (e) => {
+
+  document.getElementById('sign-caption-input')?.addEventListener('input', (e) => {
+    if (!currentInvoice.signature) currentInvoice.signature = {};
     currentInvoice.signature.caption = e.target.value;
     renderInvoiceSheet();
   });
 
-  // Toggle seller info card expansion
-  document.getElementById('toggle-seller-info').addEventListener('click', () => {
-    const card = document.getElementById('seller-info-card');
-    card.classList.toggle('collapsed-group');
-  });
-
-  // Header Actions
-  document.getElementById('btn-load-sample').addEventListener('click', () => {
-    currentInvoice = JSON.parse(JSON.stringify(ORIGINAL_BILL_DATA));
-    populateEditorFields();
-    renderInvoiceSheet();
-    showToast('Loaded original S K ENTERPRISES bill (Invoice #001)', 'toast-success');
-  });
-
-  document.getElementById('btn-new-bill').addEventListener('click', () => {
-    // Generate next invoice number
-    let nextNum = '002';
-    const currentNum = parseInt(currentInvoice.invoiceNumber, 10);
-    if (!isNaN(currentNum)) {
-      nextNum = String(currentNum + 1).padStart(3, '0');
-    }
-
-    currentInvoice.invoiceNumber = nextNum;
-    currentInvoice.invoiceDate = new Date().toISOString().split('T')[0];
-    populateEditorFields();
-    renderInvoiceSheet();
-    showToast(`Ready for New Bill #${nextNum}`, 'toast-success');
-  });
-
-  document.getElementById('btn-save-bill').addEventListener('click', () => {
-    saveCurrentInvoice();
-  });
-
-  document.getElementById('btn-history').addEventListener('click', () => {
-    updateSavedInvoicesModal();
-    document.getElementById('modal-saved-invoices').showModal();
-  });
-
-  document.getElementById('btn-buyer-directory').addEventListener('click', () => {
-    updateBuyerDirectoryModal();
-    document.getElementById('modal-buyer-directory').showModal();
-  });
-
-  document.getElementById('btn-add-new-buyer-dialog').addEventListener('click', () => {
-    document.getElementById('modal-buyer-directory').close();
-    // Switch to buyer tab
-    document.querySelector('.tab-btn[data-tab="tab-buyer"]').click();
-    document.getElementById('buyer-name').focus();
-    showToast('Enter new buyer details in the editor tab.', 'toast-info');
-  });
-
-  // Modal Closers
-  document.getElementById('btn-close-saved-modal').addEventListener('click', () => {
-    document.getElementById('modal-saved-invoices').close();
-  });
-  document.getElementById('btn-close-saved-modal-2').addEventListener('click', () => {
-    document.getElementById('modal-saved-invoices').close();
-  });
-  document.getElementById('btn-close-buyer-modal').addEventListener('click', () => {
-    document.getElementById('modal-buyer-directory').close();
-  });
-  document.getElementById('btn-close-buyer-modal-2').addEventListener('click', () => {
-    document.getElementById('modal-buyer-directory').close();
-  });
-
-  // Search in Saved Invoices Modal
-  document.getElementById('input-search-saved').addEventListener('input', (e) => {
-    updateSavedInvoicesModal(e.target.value);
-  });
-
-  // Print buttons
-  document.getElementById('btn-print').addEventListener('click', () => {
-    window.print();
-  });
-  document.getElementById('btn-quick-print').addEventListener('click', () => {
-    window.print();
-  });
-
   // Zoom controls
-  let currentZoom = 1;
-  const sheet = document.getElementById('invoice-sheet');
-  const zoomDisplay = document.getElementById('zoom-value');
+  let zoomLevel = 100;
+  const sheetWrapper = document.getElementById('sheet-wrapper');
 
-  document.getElementById('btn-zoom-in').addEventListener('click', () => {
-    if (currentZoom < 1.4) {
-      currentZoom += 0.1;
-      sheet.style.transform = `scale(${currentZoom})`;
-      zoomDisplay.textContent = Math.round(currentZoom * 100) + '%';
+  function updateZoom(val) {
+    zoomLevel = Math.max(50, Math.min(150, val));
+    document.getElementById('zoom-value').textContent = `${zoomLevel}%`;
+    const targetSheet = currentInvoice.templateType === 'challan'
+      ? document.getElementById('sheet-challan')
+      : document.getElementById('sheet-invoice');
+    if (targetSheet) {
+      targetSheet.style.transform = `scale(${zoomLevel / 100})`;
+    }
+  }
+
+  document.getElementById('btn-zoom-in')?.addEventListener('click', () => updateZoom(zoomLevel + 10));
+  document.getElementById('btn-zoom-out')?.addEventListener('click', () => updateZoom(zoomLevel - 10));
+  document.getElementById('btn-zoom-reset')?.addEventListener('click', () => {
+    if (sheetWrapper) {
+      const containerWidth = sheetWrapper.clientWidth - 40;
+      const sheetWidth = 794; // approx 210mm in px
+      const fitZoom = Math.min(100, Math.floor((containerWidth / sheetWidth) * 100));
+      updateZoom(fitZoom);
     }
   });
 
-  document.getElementById('btn-zoom-out').addEventListener('click', () => {
-    if (currentZoom > 0.5) {
-      currentZoom -= 0.1;
-      sheet.style.transform = `scale(${currentZoom})`;
-      zoomDisplay.textContent = Math.round(currentZoom * 100) + '%';
-    }
-  });
-
-  document.getElementById('btn-zoom-reset').addEventListener('click', () => {
-    currentZoom = 1;
-    sheet.style.transform = 'scale(1)';
-    zoomDisplay.textContent = '100%';
-  });
-
-  // Theme Toggle (Dark/Light workspace)
-  document.getElementById('btn-theme-toggle').addEventListener('click', () => {
+  // Dark/Light Theme Toggle
+  const themeToggle = document.getElementById('btn-theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+  themeToggle?.addEventListener('click', () => {
     const isDark = document.body.classList.toggle('theme-dark');
-    document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+    document.body.classList.toggle('theme-light', !isDark);
+    if (themeIcon) themeIcon.textContent = isDark ? '☀️' : '🌙';
     localStorage.setItem('sk_theme', isDark ? 'dark' : 'light');
   });
 
-  // Export All as PDFs (ZIP) buttons
-  const btnExportZipTop = document.getElementById('btn-export-zip-top');
-  if (btnExportZipTop) {
-    btnExportZipTop.addEventListener('click', () => {
-      exportAllInvoicesToZip();
-    });
-  }
-
-  const btnExportAllZipPdf = document.getElementById('btn-export-all-zip-pdf');
-  if (btnExportAllZipPdf) {
-    btnExportAllZipPdf.addEventListener('click', () => {
-      exportAllInvoicesToZip();
-    });
-  }
-
-  const btnCloseProgressModal = document.getElementById('btn-close-progress-modal');
-  if (btnCloseProgressModal) {
-    btnCloseProgressModal.addEventListener('click', () => {
-      document.getElementById('modal-export-progress').close();
-    });
-  }
-
-  // Export JSON
-  document.getElementById('btn-export-all-json').addEventListener('click', () => {
-    const data = {
-      seller: FIXED_SELLER,
-      invoices: getSavedInvoices(),
-      buyers: getSavedBuyers(),
-      exportedAt: new Date().toISOString()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sk-enterprises-invoices-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Invoices backup exported as JSON', 'toast-success');
-  });
-
-  // Import JSON
-  document.getElementById('input-import-json').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const imported = JSON.parse(event.target.result);
-          if (imported.invoices && Array.isArray(imported.invoices)) {
-            localStorage.setItem('sk_saved_invoices', JSON.stringify(imported.invoices));
-          }
-          if (imported.buyers && Array.isArray(imported.buyers)) {
-            localStorage.setItem('sk_saved_buyers', JSON.stringify(imported.buyers));
-          }
-          populateSavedBuyerDropdown();
-          updateSavedInvoiceCount();
-          updateSavedInvoicesModal();
-          showToast('Invoices backup imported successfully!', 'toast-success');
-        } catch (err) {
-          showToast('Failed to parse backup JSON file.', 'toast-error');
-        }
-      };
-      reader.readAsText(file);
-    }
-  });
-}
-
-// =============================================================================
-// 12. Application Initialization
-// =============================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  // Restore saved theme
-  const savedTheme = localStorage.getItem('sk_theme');
-  if (savedTheme === 'dark') {
+  if (localStorage.getItem('sk_theme') === 'dark') {
     document.body.classList.add('theme-dark');
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = '☀️';
+    document.body.classList.remove('theme-light');
+    if (themeIcon) themeIcon.textContent = '☀️';
   }
 
-  // Initialize Buyer Directory default if empty
-  if (!localStorage.getItem('sk_saved_buyers')) {
-    localStorage.setItem('sk_saved_buyers', JSON.stringify(DEFAULT_BUYERS));
-  }
+  // Sidebar Tab Navigation
+  document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const tabTarget = e.currentTarget.dataset.tab;
+      document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
 
-  // Initialize Canvas
+      document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
+      const activeSection = document.getElementById(tabTarget);
+      if (activeSection) activeSection.classList.add('active');
+    });
+  });
+
+  // Collapsible Locked Seller Info
+  document.getElementById('toggle-seller-info')?.addEventListener('click', () => {
+    document.getElementById('seller-info-card')?.classList.toggle('collapsed-group');
+  });
+
+  // JSON Export / Import
+  document.getElementById('btn-export-all-json')?.addEventListener('click', () => {
+    const backup = {
+      version: '2.0',
+      exportedAt: new Date().toISOString(),
+      currentInvoice: currentInvoice,
+      savedInvoices: getSavedInvoices(),
+      savedBuyers: getSavedBuyers()
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `SK_Enterprises_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    showToast('Exported database backup JSON', 'toast-success');
+  });
+
+  document.getElementById('input-import-json')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target.result);
+        if (parsed.savedInvoices) saveInvoicesToDb(parsed.savedInvoices);
+        if (parsed.savedBuyers) saveBuyers(parsed.savedBuyers);
+        if (parsed.currentInvoice) currentInvoice = parsed.currentInvoice;
+        populateEditorFields();
+        showToast('Successfully restored database from JSON!', 'toast-success');
+      } catch (err) {
+        showToast('Failed to import invalid JSON file.', 'toast-error');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Initialize Canvas & populate
   initSignaturePad();
-
-  // Populate editor with initial bill state and render sheet
+  populateBuyerSelector();
+  updateBuyerCountBadge();
+  updateSavedInvoiceCount();
   populateEditorFields();
-  renderInvoiceSheet();
-
-  // Attach all user interactions
-  setupEventListeners();
-
-  console.log('S K ENTERPRISES Billing Software successfully initialized.');
 });

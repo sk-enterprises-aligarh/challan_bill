@@ -1,111 +1,89 @@
-# S K ENTERPRISES - GST Tax Invoice & Job Work Billing Software
+# M/S S.K. ENTERPRISES - JobWork Challan & GST Billing Software
 
-Custom-designed commercial billing software tailored specifically for **S K ENTERPRISES** (Aligarh, Uttar Pradesh).
+Custom-built commercial billing software for **M/S S.K. ENTERPRISES** (Aligarh, Uttar Pradesh) developed directly from the physical **JobWork Challan** specification.
 
-The software permanently locks the seller/owner configuration to **S K ENTERPRISES** while providing a dynamic, feature-rich interface to create, edit, save, and print GST Job Work Tax Invoices for any buyer/customer.
+The software permanently locks all seller/owner details while providing an intuitive, real-time dual-pane interface to edit buyer details, product descriptions, weights, rates, amounts, and GST calculations.
 
 ---
 
 ## 🌟 Key Features
 
-### 🔒 Permanently Locked Seller & Owner (Non-Editable)
-As per configuration, the billing entity is fixed and cannot be accidentally modified:
-- **Firm Name**: `S K ENTERPRISES`
-- **Address**: `AGRAWAL STREET, SHAKTI NAGAR, GULAR ROAD, ALIGARH 202001 (UP) - INDIA`
-- **Mobile No.**: `93595 02004`
+### 🔒 1. Permanently Locked Seller Details (Fixed & Read-Only)
+As per configuration, the seller information is permanently locked to prevent accidental modification:
+- **Firm Name**: `M/S S.K. ENTERPRISES`
+- **Factory Address**: `AGARWAL STREET, SHAKTI NAGAR, GOOLAR ROAD, ALIGARH 202001 (UP) INDIA`
 - **GSTIN**: `09AVQPG8947B1Z6`
-- **State Code**: `09` (Uttar Pradesh)
-- **Bank Details**: `CANARA BANK`, SME BRANCH, GULAR ROAD, ALIGARH
-- **Account No.**: `120002136484` | **IFSC**: `CNRB0002375`
-- **Signatory**: `FOR S K ENTERPRISES` / `Partner/ Authorised Signatory`
-- **Jurisdiction**: `All Disputes are Subject to Aligarh Jurisdiction`
+- **State**: `UTTAR PRADESH` (State Code: `09`)
+- **Declaration**: `The above goods are returned to principal after completion of job work.`
+- **Signatory**: `For S.K. ENTERPRISES` / `Authorised Signatury`
 
-### 👤 Fully Editable Buyer Details ("Billed To:")
-- **Buyer Name / Company**: Full name editing (e.g. `M/s SREE CORPORATION`).
-- **Address**: Multi-line address (Address Line 1, Address Line 2, City & Pincode).
-- **GSTIN & State Detection**: Auto-validates 15-character GSTIN and automatically detects State Code (e.g. `09` -> Uttar Pradesh).
-- **Saved Buyer Directory**: Save frequent buyers to local database for 1-click loading.
+---
 
-### 📦 Consignment Specifications
-- Transport By, L.R. No., Vehicle Number, E-Way Bill Number.
-- Place of Supply, Number of Cases (e.g. `35 BAGS`), Reverse Charge (Yes/No).
-- Weight (Kg) and Freight (Rs.).
+### 👤 2. Fully Editable Buyer Details ("BUYER NAME & ADDRESS")
+- **Customer / Firm Name**: (e.g. `M/s EVERSHINE SALES` or custom buyer)
+- **Address Line 1**: Street, Gali, or Plot (e.g. `70/1, GALI NO.1, SAROJ NAGAR`)
+- **Address Line 2**: Area, Locality, or City (e.g. `ETAH CHUNGI, ALIGARH`)
+- **GSTIN**: 15-character GST identification number (e.g. `09AAHFE2287Q1ZP`)
+- **State & Code**: State name (`U.P`) and code (`09`)
+- **Saved Buyer Directory**: 1-click loading and saving of frequent buyers into local database.
 
-### ⚙️ Line Items & GST Calculations
-- Dynamic particulars table with fast presets for:
-  - `ZINC DIE CASTING CHARGES` (HSN 9988)
-  - `ALUMINIUM DIE CASTING CHARGES` (HSN 9988)
-  - `ZINC JOB WORK CHARGES` (HSN 9988)
-  - `FINISHING & BUFFING CHARGES` (HSN 9988)
-- Real-time tax calculation:
-  - **Intra-State (UP)**: 9% SGST + 9% CGST (18% Total GST)
-  - **Inter-State (Outside UP)**: 18% IGST (auto-detected when Buyer State Code ≠ 09)
-- Auto round off to nearest whole rupee.
-- Real-time Indian currency Number-to-Words converter (*Lakhs, Thousands, Hundreds, Rupees & Paise*).
+---
 
-### ⚖️ Details of Material (Zinc Job Work Material Ledger)
-Direct accounting of raw material issued by the customer and casting returned:
-- **Opening Balance**: Date (e.g. `02-07-2022`) and Opening weight (Kg).
-- **Dynamic Zinc Raw Material Received**:
-  - **"+ Add Received Entry" Button**: Add multiple raw zinc consignments across different dates or lot receipts.
-  - **Individual Date Field**: Each receipt entry has its own date picker (formatted on the printed bill as `DD-MM-YYYY ZINC RAW MATERIAL RECEIVED`).
-  - **Weight & Challan / Notes**: Specify quantity in Kg and optional challan or lot reference number.
-  - **Auto-Aggregated Total**: Sum of all received entries automatically updates Total Material Available and Balance.
-- **Casting Delivered (Kg)** with 1-click "Sync Qty" from bill.
-- **Burning / Melting Loss (Kg)** with 1-click "5% Loss" calculator.
-- **Zinc Returned (Kg)**.
-- **Auto-calculated Zinc Balance** with the job worker.
+### 📦 3. Editable Product Descriptions, Weights (Qty) & Rates
+- **Challan Reference**: Challan Number (e.g. `Ch. No. - 21` with 1-click `+1` auto-increment) and Date (`Date - 30.09.2026`).
+- **Product Description**: Multi-line formatted description with automatic line breaks (e.g. `Production/Processing : -\nRECIECVED ZINC SCRAP 23-09-2026\nCHALLAN NO. 003` or `ISSUED JOBWORK`).
+- **Weight / QTY**: 3-decimal precision (e.g. `405.350`).
+- **Unit**: Flexible unit naming (`Kgs`, `KGS`, `Pcs`, `Bags`, `Qtl`).
+- **Rate & Amount**:
+  - Rate in ₹ (e.g. `305.00`, `70.00`).
+  - Auto-calculated Amount (`Qty × Rate` with 3 decimals: `123631.750`, `28374.500`).
+- **Per-Item GST Tax Treatment**:
+  - **Non-Taxable / Scrap Movement**: Displays `-` in CGST and SGST columns, with total rounded to whole rupee (e.g. `123632.000`), matching original physical document.
+  - **Job Work GST 18%**: 9% CGST (`2553.710`) + 9% SGST (`2553.710`), total `33482.000`.
+  - **Inter-State IGST 18%**: For customers outside Uttar Pradesh.
+- **Totals Calculation**:
+  - Amount sum: `152006.250`
+  - CGST sum: `2553.710`
+  - SGST sum: `2553.710`
+  - Grand Total Amount: `157114.000`
+- **Title-Case Amount in Words**: Auto-converted into Indian currency numbering format:
+  `Rupees One Lakh Fifty Seven Thousand One Hundred Fourteen Only`
+- **Table Spacers**: Minimum blank spacer rows (default 4 rows) to preserve the exact physical look of the original printed bill.
 
-### ✍️ Authorised Signatory & Official Rubber Stamp
-- **Multi-Mode Signature System**:
-  - **✏️ Draw Signature**: High-DPI HTML5 canvas supporting fluid mouse, touch, and stylus pen strokes with Navy Blue, Black, and Purple ink options.
-  - **⌨️ Type Name**: Type partner/signatory name to generate an authentic calligraphic handwritten cursive signature using Google Fonts (`Caveat` & `Dancing Script`).
-  - **📁 Upload File**: Upload existing signature image (PNG, JPG, SVG).
-  - **⚡ S.K. Preset**: 1-click official S K ENTERPRISES Partner signature.
-- **Instant Synchronization**: Every signature stroke or selection syncs in real-time right above "Partner/ Authorised Signatory" on the live invoice sheet.
-- **Official S K Enterprises Stamp**: Embedded vector rubber stamp with adjustable ink color and tilt angle.
+---
 
-### 🖨️ Pixel-Perfect Standard A4 Print & PDF
-- Exact replica of the original physical tax invoice with crisp black borders and high-contrast typography.
-- Built-in `@media print` engine that formats flawlessly on standard A4 paper without cutting off tables or page elements.
+### 📋 4. Dual Template Architecture
+1. **📋 JobWork Challan (Primary & Default)**: Pixel-perfect replica of the provided photograph with crisp black borders, split buyer box, 9-column grid table, amount in words, declaration, and authorised signatory box.
+2. **🧾 Commercial GST Tax Invoice**: Standard GST commercial tax invoice with Consignment box, 6-column particulars, and Zinc Job Work Raw Material Ledger.
 
-### 📦 Export All Bills in a ZIP (PDF) File
-- **Bulk PDF Generation**: Automatically converts all saved bills into individual high-resolution A4 PDF files and packages them into a single downloadable `.zip` archive.
-- **Top Bar & History Access**: One-click "Export ZIP (PDFs)" button in the top navigation bar and inside the Invoice History Database modal.
-- **Interactive Progress Dialog**: Shows real-time progress bar, percentage, and the current bill being converted.
-- **Individual PDF Downloads**: Direct "PDF" button on every invoice card in the history list for instant single invoice download.
-- **100% Offline & Client-Side**: Powered by bundled `JSZip` and `html2pdf.js` with zero server dependencies.
+---
 
-### 💾 Local Database & Backup
-- **Save Bill**: Persist invoices in browser local storage.
-- **Invoice History**: Search, preview, and reload any past invoice.
-- **Export & Import**: Full JSON backup and restore functionality.
+### ✍️ 5. Official Rubber Stamp & Signatory System
+- **Official Vector Stamp**: S.K. Enterprises Aligarh rubber stamp with adjustable ink color (Navy Blue, Black, Ruby Red, Purple) and tilt angle.
+- **Authorised Signature**:
+  - ✏️ **Draw Sign**: Canvas supporting mouse, touch, and stylus pen.
+  - ⌨️ **Type Name**: Generates cursive calligraphic signature.
+  - 📁 **Upload File**: Upload signature image (PNG, JPG).
+  - ⚡ **S.K. Preset**: 1-click partner signature preset.
+
+---
+
+### 🖨️ 6. Pixel-Perfect A4 Printing & PDF Export
+- **Print / PDF**: Direct browser print (`window.print()`) formatted to single A4 portrait page.
+- **Download PDF**: Client-side high-resolution PDF generation via bundled `html2pdf.js`.
+- **Export ZIP**: Download all saved bills as individual PDFs packaged into a single `.zip` file.
+- **Local Storage Database**: Save, search, load, duplicate, and delete past bills.
 
 ---
 
 ## 🚀 How to Run Locally
 
-You can run the application directly using Python's built-in HTTP server:
+Start the local server using Python:
 
 ```bash
 cd billing-software
-python -m http.server 8088
+python server.py
 ```
 
-Open your browser and navigate to:
+Then open your browser and go to:
 👉 **http://localhost:8088**
-
-Or open `index.html` directly in Google Chrome, Microsoft Edge, or Firefox.
-
----
-
-## 📂 Project Structure
-
-```
-billing-software/
-├── index.html       # Application interface & A4 Tax Invoice template
-├── style.css        # Modern design system & pixel-perfect print styles
-├── app.js           # Calculation engine, Indian words converter & state manager
-├── stamp-sk.svg     # Official S K Enterprises rubber stamp vector
-└── README.md        # Documentation
-```
